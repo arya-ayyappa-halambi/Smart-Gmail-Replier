@@ -1,0 +1,522 @@
+[
+  {
+    "id": "train_01",
+    "subject": "AIML Skill Lab Project Submission Deadline and Guidelines",
+    "sender": "dr.ramesh@bmsce.ac.in",
+    "body": "Dear Students, Please ensure your final AIML Skill Lab project code repository, documentation, and evaluation benchmark results are uploaded to the department portal by Friday 5:00 PM. No extensions will be granted. Bring your laptops for the offline viva on Monday.",
+    "intent": "Academic/Faculty",
+    "urgency": "High"
+  },
+  {
+    "id": "train_02",
+    "subject": "Review of Chapter 4: Deep Learning Architectures",
+    "sender": "prof.sharma@bmsce.ac.in",
+    "body": "Hi Arya, I have gone through your initial draft of Chapter 4 on Transformer Self-Attention mechanisms. You need to expand on positional encoding comparisons. Let us discuss this during office hours on Thursday.",
+    "intent": "Academic/Faculty",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_03",
+    "subject": "Rescheduled Lecture: Reinforcement Learning (AI602)",
+    "sender": "dept.aiml@bmsce.ac.in",
+    "body": "This is to inform all 6th semester AIML students that tomorrow's 9:00 AM Reinforcement Learning lecture has been rescheduled to 2:00 PM in Seminar Hall 2 due to faculty meeting.",
+    "intent": "Academic/Faculty",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_04",
+    "subject": "Recommendation Letter Request Update",
+    "sender": "hod.aiml@bmsce.ac.in",
+    "body": "Dear Arya, Your letter of recommendation for the summer research fellowship has been signed and dispatched directly to the selection committee. Best of luck with your application.",
+    "intent": "Academic/Faculty",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_05",
+    "subject": "Final CIE-3 Marks Display and Grievance Clarification",
+    "sender": "exam.coordinator@bmsce.ac.in",
+    "body": "The consolidated CIE-3 marks for all AI subjects are displayed on the department notice board. Any discrepancy must be brought to the course coordinator's notice before 4:00 PM today.",
+    "intent": "Academic/Faculty",
+    "urgency": "High"
+  },
+  {
+    "id": "train_06",
+    "subject": "Seminar on Distributed Training with PyTorch by Visiting Scientist",
+    "sender": "seminars.aiml@bmsce.ac.in",
+    "body": "We are hosting Dr. Arvind from IISc on Friday at 11:00 AM in the Auditorium. Attendance is mandatory for pre-final year students. Please be seated 10 minutes prior.",
+    "intent": "Academic/Faculty",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_07",
+    "subject": "Feedback on your Capstone Project Abstract",
+    "sender": "ananya.faculty@bmsce.ac.in",
+    "body": "Dear Arya, Your proposal on FastMCP and agentic multi-model orchestration looks very promising. Please schedule a 15-minute sync with the review committee this week to finalize the scope.",
+    "intent": "Academic/Faculty",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_08",
+    "subject": "URGENT: Submit Attendance Shortage Condonation Application",
+    "sender": "dean.academics@bmsce.ac.in",
+    "body": "Students with attendance between 75% and 85% with valid medical reasons must submit condonation forms with supporting documents by 1:00 PM today to the Dean's office.",
+    "intent": "Academic/Faculty",
+    "urgency": "High"
+  },
+  {
+    "id": "train_09",
+    "subject": "Lab Exam Question Bank Release",
+    "sender": "lab.assistant@bmsce.ac.in",
+    "body": "The syllabus and sample problem statements for the upcoming Machine Learning lab practicals have been posted on Google Classroom.",
+    "intent": "Academic/Faculty",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_10",
+    "subject": "Research Paper Co-authorship and Proof Corrections",
+    "sender": "dr.ramesh@bmsce.ac.in",
+    "body": "Arya, the IEEE conference paper camera-ready deadline is approaching. Please verify the author affiliations, grant acknowledgments, and references by tonight.",
+    "intent": "Academic/Faculty",
+    "urgency": "High"
+  },
+  {
+    "id": "train_11",
+    "subject": "Project Phase-1 Evaluation Schedule",
+    "sender": "projects.aiml@bmsce.ac.in",
+    "body": "Phase-1 presentation slots have been assigned. Your team is scheduled for Slot 4 on Wednesday at 10:30 AM in Lab 3. Prepare an 8-slide deck.",
+    "intent": "Academic/Faculty",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_12",
+    "subject": "Library Book Due Notice: Deep Learning by Goodfellow",
+    "sender": "library@bmsce.ac.in",
+    "body": "Dear Student, The accession #94821 is due for return on 12th Nov. Please renew online or return to avoid overdue fines.",
+    "intent": "Academic/Faculty",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_13",
+    "subject": "Interview Invitation: Machine Learning Intern @ NextGen AI",
+    "sender": "priya.t@nextgenai.tech",
+    "body": "Hi Arya, We reviewed your GitHub profile and project portfolio and were very impressed with your agentic AI implementations. We would love to invite you for a 45-minute technical discussion with our engineering lead. Please share your availability for this Thursday or Friday.",
+    "intent": "Internship/Recruiter",
+    "urgency": "High"
+  },
+  {
+    "id": "train_14",
+    "subject": "HackerRank Coding Challenge: Summer AI Internship 2026",
+    "sender": "careers@cloudscale.io",
+    "body": "Hello Arya, Thank you for applying for the AI Engineering Intern role. Your online coding test is now active. You have 90 minutes to complete 3 questions. Please finish the test within the next 48 hours.",
+    "intent": "Internship/Recruiter",
+    "urgency": "High"
+  },
+  {
+    "id": "train_15",
+    "subject": "Opportunity: Machine Learning Engineer Intern at ScaleML",
+    "sender": "vikram.talent@scaleml.com",
+    "body": "Hi Arya, I came across your work in FastMCP and NLP pipelines on LinkedIn. Our team in Bangalore is looking for a summer intern to work on Small Language Model fine-tuning and retrieval optimization. Are you open to exploring opportunities?",
+    "intent": "Internship/Recruiter",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_16",
+    "subject": "Offer of Internship: Data Science & AI Research Intern",
+    "sender": "hr@neurosystems.ai",
+    "body": "Dear Arya, We are pleased to extend an offer for the AI Research Internship starting June 2026. Please review the attached offer letter and compensation structure, and sign the acceptance letter by next Tuesday.",
+    "intent": "Internship/Recruiter",
+    "urgency": "High"
+  },
+  {
+    "id": "train_17",
+    "subject": "Update on your application for Summer Fellowship 2026",
+    "sender": "recruiting@deeptechlabs.org",
+    "body": "Hello Arya, Thank you for taking the time to speak with our research team last week. We are currently consolidating candidate scores and will update you with our final decision by early next week.",
+    "intent": "Internship/Recruiter",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_18",
+    "subject": "Campus Placement Drive: Google Cloud - Shortlisted Candidates",
+    "sender": "placements@bmsce.ac.in",
+    "body": "Congratulations! You have been shortlisted for the second round technical interview with Google Cloud. The interview will be conducted via Google Meet tomorrow between 10:00 AM and 1:00 PM. Confirm your presence immediately.",
+    "intent": "Internship/Recruiter",
+    "urgency": "High"
+  },
+  {
+    "id": "train_19",
+    "subject": "Take-Home Assignment: Building a RAG Tool with FastMCP",
+    "sender": "engineering-hiring@agentix.io",
+    "body": "Hi Arya, As part of the technical screening for the Agent Developer role, please review the attached assignment repository. The task is to build a fast tool server with caching. Submit your PR within 5 days.",
+    "intent": "Internship/Recruiter",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_20",
+    "subject": "Invitation to connect and explore roles at DeepMind Bangalore",
+    "sender": "rohit.recruiter@deepmind-talent.co",
+    "body": "Hi Arya, I am a talent partner at DeepMind. We are expanding our student researcher program. I would love to connect for a casual 15-minute chat to discuss your academic timeline and interests.",
+    "intent": "Internship/Recruiter",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_21",
+    "subject": "Microsoft Student Ambassador: Screening Round Results",
+    "sender": "studentambassadors@microsoft.com",
+    "body": "Congratulations Arya, your application for the ML Lead track has progressed to the regional selection panel. Please review the attached onboard guidelines.",
+    "intent": "Internship/Recruiter",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_22",
+    "subject": "Action Required: Complete your onboarding background verification",
+    "sender": "verify@springrole.com",
+    "body": "Dear Arya, To expedite your internship onboarding at Acme AI, please upload your Aadhaar/Passport and degree transcript to the secure portal within 24 hours.",
+    "intent": "Internship/Recruiter",
+    "urgency": "High"
+  },
+  {
+    "id": "train_23",
+    "subject": "Follow up regarding Summer Research Internship",
+    "sender": "tanvi.k@iitb-lab.ac.in",
+    "body": "Dear Arya, Professor Rao was impressed with your paper implementation. We can offer you a paid summer fellowship in our NLP lab starting May 15. Please let us know if the dates align with your semester break.",
+    "intent": "Internship/Recruiter",
+    "urgency": "High"
+  },
+  {
+    "id": "train_24",
+    "subject": "Feedback on your System Design Interview Round",
+    "sender": "talent@hypercompute.net",
+    "body": "Hi Arya, The interviewers enjoyed the conversation about distributed embeddings and Faiss clustering. We would like to advance you to the final behavioral round with our VP of Engineering.",
+    "intent": "Internship/Recruiter",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_25",
+    "subject": "Hackathon 2026: Team Registration Confirmation & Discord Link",
+    "sender": "organizers@hackbmsce.in",
+    "body": "Hi Arya, Your team 'TensorCrew' is registered for the national 36-hour hackathon! Join our official Discord server to receive the problem statement drops and mentor schedules.",
+    "intent": "Event/Club",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_26",
+    "subject": "ACM Student Chapter: Core Committee Meeting Tonight",
+    "sender": "acm.chair@bmsce.ac.in",
+    "body": "Hey everyone, Urgent sync today at 6:30 PM in the Mech Seminar Hall to finalize the budget and speaker hospitality for TechTranscend 2026. Please be on time.",
+    "intent": "Event/Club",
+    "urgency": "High"
+  },
+  {
+    "id": "train_27",
+    "subject": "Volunteer Call for IEEE International Conference on AI",
+    "sender": "ieee.studentbranch@bmsce.ac.in",
+    "body": "We are looking for enthusiastic student volunteers for registration desk, track management, and AV coordination. Certificate of appreciation and food vouchers provided.",
+    "intent": "Event/Club",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_28",
+    "subject": "Rotaract Club Blood Donation Camp - Volunteer Allocation",
+    "sender": "rotaract@bmsce.ac.in",
+    "body": "Hi volunteers, Please find the shift timings for the annual blood donation drive happening this Saturday at the Indoor Stadium. Arya, you are assigned to donor registration desk from 10 AM to 1 PM.",
+    "intent": "Event/Club",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_29",
+    "subject": "GDSC BMSCE: Hands-on Workshop on Gemini Flash & Agentic AI",
+    "sender": "gdsc@bmsce.ac.in",
+    "body": "Join us this Wednesday at 4:30 PM in Lab 4 for an interactive deep-dive into building autonomous AI agents with Google Antigravity. Free pizza for all attendees!",
+    "intent": "Event/Club",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_30",
+    "subject": "Call for Submissions: College Annual Magazine (Tech Edition)",
+    "sender": "editorial.board@bmsce.ac.in",
+    "body": "Submit your technical articles, poetry, artwork, or research summaries for the 2026 edition of UTSAV. Submission deadline is the 25th of this month.",
+    "intent": "Event/Club",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_31",
+    "subject": "AeroBMSCE Club: Drone Testing Session this Sunday",
+    "sender": "aerobmsce.lead@gmail.com",
+    "body": "Hey team, We will be testing the autonomous path-planning algorithm on the quadcopter at the college football ground at 7:00 AM this Sunday. Please carry spare battery packs.",
+    "intent": "Event/Club",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_32",
+    "subject": "Cultural Fest UTSAV 2026 - Battle of Bands Auditions",
+    "sender": "utsav.cultural@bmsce.ac.in",
+    "body": "Auditions for the inter-collegiate band competition begin tomorrow evening in the amphitheatre. Register your band slot before noon.",
+    "intent": "Event/Club",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_33",
+    "subject": "Coding Club: Weekly LeetCode Contest Discussion & Leaderboard",
+    "sender": "codeclub@bmsce.ac.in",
+    "body": "Here are the top performers from yesterday's contest. We will be analyzing problem 4 (dynamic programming on trees) tomorrow at 5 PM in room 302.",
+    "intent": "Event/Club",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_34",
+    "subject": "Robotics Club: Component Requisition for Robowars",
+    "sender": "robotics@bmsce.ac.in",
+    "body": "Hi leads, Please send your ESC, LiPo battery, and chassis motor requirements by tonight so we can place a bulk order on Robu.in tomorrow morning.",
+    "intent": "Event/Club",
+    "urgency": "High"
+  },
+  {
+    "id": "train_35",
+    "subject": "Action Required: AWS Cloud Credits Expiring in 24 Hours",
+    "sender": "no-reply-aws@amazon.com",
+    "body": "Your promotional AWS Educate credits of $100 will expire on Nov 10, 2026. Please ensure all active EC2 GPU instances are terminated to prevent unexpected debit card charges.",
+    "intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "train_36",
+    "subject": "URGENT: GitHub Security Alert - Vulnerability in fastmcp dependency",
+    "sender": "security-alerts@github.com",
+    "body": "We detected a high severity security vulnerability in a dependency used in your repository 'smart-gmail-replier'. Please update to the latest patched version immediately.",
+    "intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "train_37",
+    "subject": "Immediate Action: Semester Examination Fee Payment Portal Closes Today",
+    "sender": "finance@bmsce.ac.in",
+    "body": "The online payment gateway for semester end examination fees will close at 11:59 PM today. Late fees of Rs 1000 will be levied for any payment received after midnight.",
+    "intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "train_38",
+    "subject": "Action Required: Confirm your GitHub Student Developer Pack Renewal",
+    "sender": "support@github.com",
+    "body": "Your academic status verification expires in 3 days. Please upload your student ID card or college fee receipt to renew your Copilot and Cloud benefits.",
+    "intent": "Action Required",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_39",
+    "subject": "URGENT: Two-Factor Authentication (2FA) Setup Required on College ERP",
+    "sender": "it-support@bmsce.ac.in",
+    "body": "In accordance with university cyber security policy, all student accounts must enable mandatory 2FA using Google Authenticator by Wednesday. Non-compliant accounts will be locked.",
+    "intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "train_40",
+    "subject": "Action Required: Sign Non-Disclosure Agreement for Capstone Sponsor",
+    "sender": "legal@deeptechsponsor.com",
+    "body": "Please review and digitally sign the attached NDA document via DocuSign to receive access to the proprietary training dataset and API credentials.",
+    "intent": "Action Required",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_41",
+    "subject": "Action Required: Submit Elective Choice for 7th Semester",
+    "sender": "academic.registrar@bmsce.ac.in",
+    "body": "Elective selection for next semester opens at 10 AM. Popular electives such as Deep Reinforcement Learning and Quantum Computing fill on first-come-first-serve basis.",
+    "intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "train_42",
+    "subject": "CRITICAL: GPU Node Server Disk Space at 98% Capacity",
+    "sender": "sysadmin@bmsce.ac.in",
+    "body": "The /mnt/scratch partition on node-04 is almost full due to lingering checkpoint files. All users must delete stale model dumps before 5:00 PM or they will be purged automatically.",
+    "intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "train_43",
+    "subject": "Action Needed: Verify your bank account for stipend disbursement",
+    "sender": "accounts@bmsce.ac.in",
+    "body": "To receive your teaching assistant stipend, submit your bank passbook IFSC code and cancelled cheque to Room 104 by Thursday afternoon.",
+    "intent": "Action Required",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_44",
+    "subject": "URGENT: Broken Build in main branch - PR #56",
+    "sender": "ci-bot@github.com",
+    "body": "The continuous integration pipeline failed on branch main after your commit. Unit test 'test_rag_pipeline_latency' raised an AssertionError. Immediate fix required.",
+    "intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "train_45",
+    "subject": "Action Required: Complete Course Feedback Survey",
+    "sender": "quality.assurance@bmsce.ac.in",
+    "body": "Please complete the mandatory faculty and course evaluation survey on the student portal to unlock your provisional grade sheet for the current semester.",
+    "intent": "Action Required",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_46",
+    "subject": "Action Required: Renew your SSL Certificate for Project Domain",
+    "sender": "cert-manager@letsencrypt.org",
+    "body": "Your SSL certificate for api.aryaprojects.dev will expire in 7 days. Automated renewal failed due to DNS challenge failure. Please renew manually.",
+    "intent": "Action Required",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_47",
+    "subject": "Exclusive 70% Off: Master Generative AI in 30 Days!",
+    "sender": "promotions@learn-online-now.com",
+    "body": "Supercharge your tech career! Enroll in our Full Stack GenAI Bootcamp today with guaranteed placement support. Flat 70% discount valid for the next 2 hours only. Claim your coupon!",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_48",
+    "subject": "Congratulations! You won a $1,000 Amazon Gift Card",
+    "sender": "reward-center@lucky-winners-claim.xyz",
+    "body": "You have been selected as our lucky shopper of the week. Click here to verify your identity and claim your free $1,000 gift voucher immediately before it expires.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_49",
+    "subject": "Domino's Pizza: Buy 1 Get 1 Free this weekend only!",
+    "sender": "deals@dominos-promos.com",
+    "body": "Craving cheesy deliciousness? Order any medium gourmet pizza and get another absolutely free! Use coupon code FEAST50 at checkout. Order now on the app.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_50",
+    "subject": "Special Loan Offer Pre-Approved up to Rs. 5,00,000!",
+    "sender": "loans@quick-credit-now.in",
+    "body": "Instant personal loans with zero paperwork, minimal interest rates, and disbursal within 10 minutes. Click to check your pre-approved credit limit today.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_51",
+    "subject": "LinkedIn: 45 people viewed your profile this week",
+    "sender": "updates@linkedin.com",
+    "body": "See who is looking at your profile and expand your professional network with LinkedIn Premium. Try 1 month free trial and unlock InMail credits today.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_52",
+    "subject": "Uber Eats: 50% discount on your next 3 biryani orders!",
+    "sender": "newsletter@uber.com",
+    "body": "Hungry? Save big on top rated restaurants around Bangalore. Enjoy free delivery plus flat 50% off with promo code HUNGRY50. T&C apply.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_53",
+    "subject": "Flash Sale: Mechanical Keyboards and Gaming Mice 40% Off",
+    "sender": "sales@techgear-deals.com",
+    "body": "Upgrade your coding setup! RGB backlit hot-swappable switches and ergonomic wireless mice are on flash sale until midnight. Shop now while stocks last.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_54",
+    "subject": "Earn $500/day working from home - Simple Data Entry",
+    "sender": "careers-offer@fast-cash-income.biz",
+    "body": "No experience needed! Work 2 hours daily from your smartphone or laptop. Guaranteed payouts every Friday via PayPal or Crypto. Click to start immediately.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_55",
+    "subject": "Coursera: Deep Learning Specialization 50% Off",
+    "sender": "no-reply@coursera.org",
+    "body": "Master Convolutional Neural Networks and Sequence Models taught by Andrew Ng. Subscribe today to get 50% off your first year of Coursera Plus.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_56",
+    "subject": "Spotify Premium: 3 Months for just Rs. 59",
+    "sender": "spotify-offers@spotify.com",
+    "body": "Listen to ad-free music, download tracks for offline listening, and enjoy unlimited skips. Subscribe to Spotify Student Premium today.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_57",
+    "subject": "Your Netflix Subscription: Update payment method to enjoy shows",
+    "sender": "billing-notice@promo-streaming-alerts.com",
+    "body": "We could not process your last subscription renewal. Update your card details to prevent interruption of your service and access to trending movies.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_58",
+    "subject": "Zomato Gold: Renew membership at flat 60% discount",
+    "sender": "gold@zomato.com",
+    "body": "Get unlimited free deliveries on orders above Rs 199 and VIP dining discounts at top partner cafes across Bengaluru.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_59",
+    "subject": "Conference Registration: IEEE ICMLC 2026 Early Bird Closes Soon",
+    "sender": "chair@icmlc-conference.org",
+    "body": "Dear Author, Early bird author registration for accepted papers at the 14th International Conference on Machine Learning and Computing closes on Nov 15th.",
+    "intent": "Academic/Faculty",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_60",
+    "subject": "Invitation for Guest Lecture on FastMCP Tools for Agents",
+    "sender": "faculty.advisor@pes.edu",
+    "body": "Dear Arya, We noticed your open-source projects on Model Context Protocol. We would love to host you for a 1-hour technical webinar for our postgraduate AI students.",
+    "intent": "Academic/Faculty",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_61",
+    "subject": "Offer: AI Research Fellowship at IISc Bangalore",
+    "sender": "fellowships@csa.iisc.ac.in",
+    "body": "Dear Candidate, Based on your written test and interview scores, we are pleased to offer you the Summer Research Fellowship in the Computational Data Sciences department. Please confirm acceptance by Friday.",
+    "intent": "Internship/Recruiter",
+    "urgency": "High"
+  },
+  {
+    "id": "train_62",
+    "subject": "Hackathon Mentorship Opportunity: HackNight 2026",
+    "sender": "mentors@hacknight.dev",
+    "body": "Hi Arya, Given your track record in hackathons, we would be honored to have you as a technical judge and mentor for the generative AI track. Food and travel stipends provided.",
+    "intent": "Event/Club",
+    "urgency": "Medium"
+  },
+  {
+    "id": "train_63",
+    "subject": "ACTION REQUIRED: Revoke Leaked API Key detected on GitHub",
+    "sender": "security@openai.com",
+    "body": "We detected an exposed OpenAI API key associated with your organization in a public commit. We have proactively disabled the key. Please rotate all credentials immediately.",
+    "intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "train_64",
+    "subject": "Clearance Sale: Up to 80% Off on Branded Shoes & Hoodies",
+    "sender": "newsletter@urban-deals.in",
+    "body": "Mega shopping carnival starts now! Grab top brands at rock bottom clearance prices. Free shipping on all prepaid orders today.",
+    "intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "train_65",
+    "subject": "URGENT: Re-submit Signature for Degree Certificate Dispatch",
+    "sender": "exam.controller@vtu.ac.in",
+    "body": "The scanned signature submitted on your convocation form has insufficient DPI resolution. Re-upload a high-resolution 300 DPI scan before 3 PM today to avoid certificate printing delays.",
+    "intent": "Action Required",
+    "urgency": "High"
+  }
+]

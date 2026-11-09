@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MailMind AI — Executive Inbox Client</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Clean Apple-style scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans h-screen overflow-hidden flex flex-col antialiased select-none" x-data="mailApp()" x-init="init()">
+
+  <!-- ===================================================================== -->
+  <!-- 1. TOP EXECUTIVE HEADER (56px) -->
+  <!-- ===================================================================== -->
+  <header class="h-14 border-b border-slate-200 bg-white px-4 flex items-center justify-between flex-shrink-0 z-30 shadow-2xs">
+    
+    <!-- Left: Brand Logo & macOS Controls -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5 mr-1">
+        <span class="w-3 h-3 rounded-full bg-rose-400 border border-rose-500/30"></span>
+        <span class="w-3 h-3 rounded-full bg-amber-400 border border-amber-500/30"></span>
+        <span class="w-3 h-3 rounded-full bg-emerald-400 border border-emerald-500/30"></span>
+      </div>
+
+      <div class="h-4 w-px bg-slate-200 mx-1"></div>
+
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs">
+          <i data-lucide="mail" class="w-4 h-4"></i>
+        </div>
+        <span class="text-sm font-extrabold tracking-tight text-slate-900">MailMind AI</span>
+        <span class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200">v2.3 Executive</span>
+      </div>
+    </div>
+
+    <!-- Center: Mode Switcher & Benchmarks -->
+    <div class="flex items-center gap-2">
+      <!-- Live vs Demo Toggle -->
+      <div class="flex items-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-xs font-semibold">
+        <button @click="switchMode('live')" 
+                class="px-2.5 py-1 rounded-md transition flex items-center gap-1.5"
+                :class="inboxMode === 'live' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'">
+          <span class="w-2 h-2 rounded-full" :class="auth.connected ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+          <span>Live Gmail</span>
+        </button>
+        <button @click="switchMode('demo')" 
+                class="px-2.5 py-1 rounded-md transition flex items-center gap-1.5"
+                :class="inboxMode === 'demo' ? 'bg-white text-purple-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'">
+          <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-purple-600"></i>
+          <span>Viva Lab Dataset</span>
+        </button>
+      </div>
+
+      <!-- Quick Metrics -->
+      <div class="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-700 font-medium">
+        <span class="text-blue-700 font-semibold">95.0% Accuracy</span>
+        <span class="text-slate-300">•</span>
+        <span class="text-slate-600 font-mono text-[11px]">8.4ms Latency</span>
+      </div>
+
+      <button @click="showBenchModal = true" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition">
+        Benchmarks
+      </button>
+
+      <button @click="showSandboxModal = true" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition">
+        Sandbox
+      </button>
+
+      <button @click="showShortcutsModal = true" title="Keyboard Shortcuts (?)" class="px-2 py-1 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 shadow-2xs transition">
+        <kbd class="font-mono text-[11px] font-bold">?</kbd>
+      </button>
+    </div>
+
+    <!-- Right: Sync & Account -->
+    <div class="flex items-center gap-2">
+      <button @click="syncInbox()" :disabled="loading" 
+              class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition disabled:opacity-50">
+        <i data-lucide="rotate-cw" class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': loading }"></i>
+        <span x-text="loading ? 'Syncing...' : 'Sync'"></span>
+      </button>
+
+      <template x-if="auth.connected">
+        <div class="flex items-center gap-1.5">
+          <div class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold max-w-[150px] truncate" x-text="auth.email"></div>
+          <button @click="logout()" title="Sign out" class="px-2 py-1 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200">
+            Sign Out
+          </button>
+        </div>
+      </template>
+
+      <template x-if="!auth.connected">
+        <button @click="login()" class="px-3 py-1 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs">
+          Sign In
+        </button>
+      </template>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- SIGNED-OUT HERO BANNER (When Live Mode and Not Authenticated) -->
+  <!-- ===================================================================== -->
+  <div x-show="inboxMode === 'live' && !auth.connected && !loading" class="flex-1 flex items-center justify-center bg-slate-50 p-6">
+    <div class="bg-white border border-slate-200 rounded-3xl p-8 max-w-md w-full shadow-lg text-center space-y-5">
+      <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center shadow-xs">
+        <i data-lucide="shield-check" class="w-8 h-8"></i>
+      </div>
+      <div>
+        <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Connect Your Gmail</h2>
+        <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+          Sign in securely via Google OAuth 2.0 to triage your unread inbox, generate tone-matched drafts, and inspect ML RAG insights.
+        </p>
+      </div>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-left space-y-1.5 text-xs text-slate-600">
+        <div class="flex items-center gap-2 font-semibold text-slate-800">
+          <span class="text-emerald-600 font-bold">✓</span> Least-Privilege Scopes (Read-only + Drafts)
+        </div>
+        <div class="flex items-center gap-2 font-semibold text-slate-800">
+          <span class="text-emerald-600 font-bold">✓</span> Zero Auto-Send Guarantee
+        </div>
+        <div class="flex items-center gap-2 font-semibold text-slate-800">
+          <span class="text-emerald-600 font-bold">✓</span> 100% Server-Side Processing
+        </div>
+      </div>
+
+      <button @click="login()" class="w-full py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-sm shadow-xs transition flex items-center justify-center gap-3">
+        <svg class="w-5 h-5" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <div class="text-[11px] text-slate-400">
+        Want to test offline? 
+        <button @click="switchMode('demo')" class="text-blue-600 font-bold hover:underline">
+          Switch to Viva Lab Dataset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2. MAIN 4-COLUMN WORKSPACE -->
+  <!-- ===================================================================== -->
+  <main x-show="inboxMode === 'demo' || auth.connected" class="flex-1 flex overflow-hidden">
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- COLUMN 1: SIDEBAR (200px) -->
+    <!-- ------------------------------------------------------------------- -->
+    <aside class="w-52 border-r border-slate-200 bg-slate-50/70 flex flex-col justify-between flex-shrink-0 p-3 select-none">
+      
+      <div class="space-y-4">
+        <!-- Folders -->
+        <div>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2 block mb-1">Mailboxes</span>
+          <nav class="space-y-0.5">
+            <button @click="setFilter('ALL')" 
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition"
+                    :class="currentFilter === 'ALL' ? 'bg-blue-600 text-white font-bold shadow-2xs' : 'text-slate-700 hover:bg-slate-200/60'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="inbox" class="w-4 h-4"></i>
+                <span>All Inboxes</span>
+              </span>
+              <span class="text-[11px] font-mono px-1.5 py-0.2 rounded-full" 
+                    :class="currentFilter === 'ALL' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'"
+                    x-text="emails.length"></span>
+            </button>
+
+            <button @click="setFilter('STARRED')" 
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition"
+                    :class="currentFilter === 'STARRED' ? 'bg-amber-50 text-amber-900 border border-amber-200 font-bold' : 'text-slate-700 hover:bg-slate-200/60'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="star" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+                <span>Starred</span>
+              </span>
+              <span class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800"
+                    x-text="starredIds.length"></span>
+            </button>
+
+            <button @click="setFilter('ACTIONABLE')" 
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition"
+                    :class="currentFilter === 'ACTIONABLE' ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold' : 'text-slate-700 hover:bg-slate-200/60'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4 text-blue-600"></i>
+                <span>Actionable</span>
+              </span>
+              <span class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-800"
+                    x-text="countActionable"></span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Categories -->
+        <div class="pt-2 border-t border-slate-200/60">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2 block mb-1">Categories</span>
+          <nav class="space-y-0.5">
+            <button @click="setFilter('Academic/Faculty')" 
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition"
+                    :class="currentFilter === 'Academic/Faculty' ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold' : 'text-slate-700 hover:bg-slate-200/60'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="graduation-cap" class="w-4 h-4 text-blue-600"></i>
+                <span>Academic</span>
+              </span>
+              <span class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600"
+                    x-text="countCategory('Academic/Faculty')"></span>
+            </button>
+
+            <button @click="setFilter('Internship/Recruiter')" 
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition"
+                    :class="currentFilter === 'Internship/Recruiter' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold' : 'text-slate-700 hover:bg-slate-200/60'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="briefcase" class="w-4 h-4 text-emerald-600"></i>
+                <span>Recruiters</span>
+              </span>
+              <span class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600"
+                    x-text="countCategory('Internship/Recruiter')"></span>
+            </button>
+
+            <button @click="setFilter('Event/Club')" 
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition"
+                    :class="currentFilter === 'Event/Club' ? 'bg-purple-50 text-purple-700 border border-purple-200 font-bold' : 'text-slate-700 hover:bg-slate-200/60'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="calendar" class="w-4 h-4 text-purple-600"></i>
+                <span>Clubs & Events</span>
+              </span>
+              <span class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600"
+                    x-text="countCategory('Event/Club')"></span>
+            </button>
+
+            <button @click="setFilter('Action Required')" 
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition"
+                    :class="currentFilter === 'Action Required' ? 'bg-amber-50 text-amber-700 border border-amber-200 font-bold' : 'text-slate-700 hover:bg-slate-200/60'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i>
+                <span>Urgent Action</span>
+              </span>
+              <span class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600"
+                    x-text="countCategory('Action Required')"></span>
+            </button>
+
+            <button @click="setFilter('BOTS_AND_PROMOS')" 
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition"
+                    :class="currentFilter === 'BOTS_AND_PROMOS' ? 'bg-slate-200 text-slate-800 font-bold' : 'text-slate-600 hover:bg-slate-200/60'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="newspaper" class="w-4 h-4 text-slate-500"></i>
+                <span>Newsletters</span>
+              </span>
+              <span class="text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600"
+                    x-text="countBotsAndPromos"></span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Student Card & Shortcut Hint -->
+      <div class="space-y-2">
+        <div class="bg-white rounded-xl p-3 border border-slate-200 shadow-2xs">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">HA</div>
+            <div class="overflow-hidden">
+              <div class="text-xs font-bold text-slate-900 truncate">H R Arya Ayyappa Halambi</div>
+              <div class="text-[10px] text-slate-500 font-mono">1BF25CS095</div>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-400">Dept. of CSE, BMSCE</p>
+        </div>
+
+        <div class="text-center">
+          <button @click="showShortcutsModal = true" class="text-[10px] text-slate-400 hover:text-slate-600 transition flex items-center justify-center gap-1 mx-auto">
+            <span>Press</span> <kbd class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-mono font-bold text-[9px]">?</kbd> <span>for shortcuts</span>
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- COLUMN 2: MESSAGE LIST (320px) -->
+    <!-- ------------------------------------------------------------------- -->
+    <section class="w-80 border-r border-slate-200 bg-white flex flex-col flex-shrink-0 h-full">
+      
+      <!-- Search Input -->
+      <div class="p-3 border-b border-slate-200 bg-slate-50/50 flex-shrink-0">
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input type="text" x-model="searchQuery" placeholder="Filter emails... (/)" 
+                 class="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-2xs">
+        </div>
+      </div>
+
+      <!-- Messages List Scroll -->
+      <div class="flex-1 overflow-y-auto divide-y divide-slate-100">
+        
+        <template x-if="loading">
+          <div class="p-8 text-center text-slate-400 text-xs flex flex-col items-center justify-center h-full">
+            <i data-lucide="loader" class="w-6 h-6 animate-spin text-blue-600 mb-2"></i>
+            <span>Loading emails...</span>
+          </div>
+        </template>
+
+        <template x-if="!loading && filteredEmails.length === 0">
+          <div class="p-6 text-center text-slate-500 text-xs flex flex-col items-center justify-center h-full space-y-3">
+            <p class="font-bold text-slate-700">No emails in this view</p>
+            <button @click="setFilter('ALL')" class="py-1.5 px-3 rounded-lg bg-blue-600 text-white font-bold text-xs">
+              View All Inboxes (<span x-text="emails.length"></span>)
+            </button>
+          </div>
+        </template>
+
+        <!-- Message Item Cards -->
+        <template x-for="(em, idx) in filteredEmails" :key="em.id">
+          <div @click="selectEmail(em)" 
+               class="p-3.5 cursor-pointer transition select-none text-left relative group border-b border-slate-100"
+               :class="selectedEmail && selectedEmail.id === em.id 
+                       ? 'bg-blue-50/90 border-l-4 border-l-blue-600' 
+                       : 'hover:bg-slate-50 border-l-4 border-l-transparent'">
+            
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-slate-900 truncate max-w-[190px]" x-text="em.sender_clean"></span>
+              <div class="flex items-center gap-1">
+                <button @click.stop="toggleStar(em.id)" class="text-slate-300 hover:text-amber-500 text-xs" :class="isStarred(em.id) ? 'text-amber-500' : ''">★</button>
+                <span class="text-[10px] font-mono text-slate-400" x-text="formatDate(em.date)"></span>
+              </div>
+            </div>
+
+            <div class="text-xs font-semibold text-slate-800 truncate mb-1" x-text="em.subject"></div>
+            <p class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed mb-2" x-text="em.body"></p>
+
+            <div class="flex items-center justify-between gap-1">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    :class="getIntentBadgeClass(em.analysis ? em.analysis.intent : '')"
+                    x-text="em.analysis ? em.analysis.intent : 'General'"></span>
+
+              <span class="text-[10px] font-mono font-bold text-slate-500" 
+                    x-text="em.analysis ? `${Math.round(em.analysis.intent_confidence * 100)}%` : ''"></span>
+            </div>
+
+          </div>
+        </template>
+
+      </div>
+
+      <!-- Footer + Load More -->
+      <div class="p-2 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs flex-shrink-0">
+        <span class="text-[10px] text-slate-500 font-mono" x-text="`${filteredEmails.length} of ${emails.length} emails`"></span>
+        <button @click="loadMoreEmails()" :disabled="loadingMore"
+                class="px-2 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[11px] font-semibold text-blue-700 transition flex items-center gap-1 disabled:opacity-50">
+          <i data-lucide="chevron-down" class="w-3 h-3"></i>
+          <span x-text="loadingMore ? 'Fetching...' : '+25 More'"></span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- COLUMN 3: EMAIL READER PANE (Flexible min-w-0) -->
+    <!-- ------------------------------------------------------------------- -->
+    <section class="flex-1 min-w-0 border-r border-slate-200 bg-white flex flex-col h-full overflow-hidden">
+
+      <div x-show="!selectedEmail" class="flex-1 flex flex-col items-center justify-center text-slate-400 text-center p-12">
+        <i data-lucide="mail-open" class="w-10 h-10 mb-2 text-slate-300"></i>
+        <h3 class="text-sm font-bold text-slate-700">No Email Selected</h3>
+        <p class="text-xs text-slate-400">Click any message in Column 2 to view content and AI suggestions.</p>
+      </div>
+
+      <div x-show="selectedEmail" class="flex-1 flex flex-col h-full overflow-hidden">
+        
+        <!-- Header Toolbar -->
+        <div class="p-4 border-b border-slate-200 bg-white flex-shrink-0">
+          <div class="flex items-start justify-between gap-4 mb-2">
+            <h2 class="text-base font-bold text-slate-900 leading-snug" x-text="selectedEmail ? selectedEmail.subject : ''"></h2>
+            
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button @click="selectedEmail && toggleStar(selectedEmail.id)" title="Star (S)" class="px-2 py-1 rounded border border-slate-200 text-xs" :class="selectedEmail && isStarred(selectedEmail.id) ? 'text-amber-500 bg-amber-50' : 'text-slate-500'">
+                ★ Star
+              </button>
+              <button @click="showFocusModal = true" title="Full Screen (F)" class="px-2 py-1 rounded border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-1">
+                <span>⛶ Focus</span>
+              </button>
+              <button @click="copyBodyText()" class="px-2 py-1 rounded border border-slate-200 text-xs text-slate-600 hover:bg-slate-50">
+                Copy
+              </button>
+              <div class="flex items-center bg-slate-100 p-0.5 rounded border border-slate-200 text-[11px] font-semibold ml-1">
+                <button @click="viewMode = 'prose'" class="px-2 py-0.5 rounded transition" :class="viewMode === 'prose' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600'">Prose</button>
+                <button @click="viewMode = 'html'" class="px-2 py-0.5 rounded transition" :class="viewMode === 'html' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600'">HTML</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+            <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs" 
+                 x-text="selectedEmail && selectedEmail.sender_clean ? selectedEmail.sender_clean.substring(0, 2).toUpperCase() : 'EM'"></div>
+            <div class="truncate">
+              <span class="font-bold text-slate-900" x-text="selectedEmail ? selectedEmail.sender_clean : ''"></span>
+              <span class="font-mono text-[11px] text-slate-400" x-text="selectedEmail ? `<${selectedEmail.sender}>` : ''"></span>
+            </div>
+
+            <!-- Domain Verified Badge -->
+            <template x-if="selectedEmail && selectedEmail.insights && selectedEmail.insights.domain_verified">
+              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
+                <span>✓</span> Verified Domain
+              </span>
+            </template>
+
+            <!-- Reading Time -->
+            <span class="text-[10px] text-slate-400 font-mono" x-text="selectedEmail && selectedEmail.insights ? `⏱ ${selectedEmail.insights.reading_time}` : ''"></span>
+
+            <span class="text-slate-400 ml-auto font-mono text-[11px]" x-text="selectedEmail ? selectedEmail.date : ''"></span>
+          </div>
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/40">
+          
+          <!-- DEEP CONTENT UNDERSTANDING CARDS -->
+          <div x-show="selectedEmail && selectedEmail.insights" class="space-y-3">
+            
+            <!-- In Simple Words & What They Are Expecting -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <!-- In Simple Words -->
+              <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-3.5 space-y-1">
+                <div class="flex items-center gap-1.5 text-blue-800 text-[11px] font-extrabold uppercase tracking-wide">
+                  <i data-lucide="info" class="w-3.5 h-3.5 text-blue-600"></i>
+                  <span>In Simple Words</span>
+                </div>
+                <p class="text-xs text-slate-700 leading-relaxed font-medium" 
+                   x-text="selectedEmail && selectedEmail.insights ? selectedEmail.insights.simple_words : ''"></p>
+              </div>
+
+              <!-- What They Are Expecting -->
+              <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 space-y-1">
+                <div class="flex items-center gap-1.5 text-amber-900 text-[11px] font-extrabold uppercase tracking-wide">
+                  <i data-lucide="target" class="w-3.5 h-3.5 text-amber-600"></i>
+                  <span>What They Expect</span>
+                </div>
+                <p class="text-xs text-amber-950 leading-relaxed font-medium" 
+                   x-text="selectedEmail && selectedEmail.insights ? selectedEmail.insights.expectation : ''"></p>
+              </div>
+            </div>
+
+            <!-- Interactive Action Items Checklist -->
+            <div x-show="selectedEmail && selectedEmail.insights && selectedEmail.insights.action_items && selectedEmail.insights.action_items.length > 0" 
+                 class="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Action Checklist (Select to include in draft):</span>
+                <span class="text-[10px] font-mono text-blue-600 font-semibold" x-text="`${checkedActionItems.length} selected`"></span>
+              </div>
+              <div class="space-y-1.5 pt-1">
+                <template x-for="(item, idx) in (selectedEmail && selectedEmail.insights ? selectedEmail.insights.action_items : [])" :key="idx">
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-200 transition">
+                    <input type="checkbox" :value="item" x-model="checkedActionItems" @change="onActionItemToggled()"
+                           class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                    <span class="text-xs text-slate-800 leading-tight select-none" x-text="item"></span>
+                  </label>
+                </template>
+              </div>
+            </div>
+
+            <!-- Detected Deadlines / Dates -->
+            <div x-show="selectedEmail && selectedEmail.insights && selectedEmail.insights.deadlines && selectedEmail.insights.deadlines.length > 0" 
+                 class="flex flex-wrap items-center gap-1.5">
+              <span class="text-[10px] font-bold text-slate-400 uppercase">Key Deadlines:</span>
+              <template x-for="d in (selectedEmail && selectedEmail.insights ? selectedEmail.insights.deadlines : [])" :key="d">
+                <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-mono font-bold" x-text="d"></span>
+              </template>
+            </div>
+
+          </div>
+
+          <!-- Clean Prose View -->
+          <div x-show="viewMode === 'prose'" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs">
+            <div class="text-[14px] leading-relaxed text-slate-800 whitespace-pre-wrap font-sans selection:bg-blue-100"
+                 x-text="selectedEmail ? selectedEmail.body : ''"></div>
+          </div>
+
+          <!-- Rich HTML View -->
+          <div x-show="viewMode === 'html'" class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs h-[500px]">
+            <template x-if="selectedEmail && selectedEmail.html">
+              <iframe :srcdoc="selectedEmail.html" sandbox="allow-same-origin" class="w-full h-full border-0"></iframe>
+            </template>
+            <template x-if="!selectedEmail || !selectedEmail.html">
+              <div class="p-8 text-center text-slate-400 text-xs">No HTML payload available for this email.</div>
+            </template>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- COLUMN 4: DEDICATED AI COPILOT & SUGGESTIONS (360px) -->
+    <!-- ------------------------------------------------------------------- -->
+    <aside class="w-[360px] border-l border-slate-200 bg-white flex flex-col flex-shrink-0 h-full overflow-hidden">
+      
+      <div class="p-3.5 border-b border-slate-200 bg-slate-50/60 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">AI</div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">AI Copilot & Smart Draft</h3>
+        </div>
+        <span class="text-[10px] font-mono text-slate-400" x-text="selectedEmail && selectedEmail.analysis ? `${selectedEmail.analysis.inference_latency_ms}ms` : ''"></span>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        
+        <div x-show="!selectedEmail" class="p-8 text-center text-slate-400 text-xs">
+          Select an email to view ML reasoning and suggestion chips.
+        </div>
+
+        <div x-show="selectedEmail" class="space-y-4">
+
+          <!-- 1. Classification & RAG -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Classification</span>
+              <span class="text-[11px] font-mono font-bold text-blue-700" 
+                    x-text="selectedEmail && selectedEmail.analysis ? `${Math.round(selectedEmail.analysis.intent_confidence*100)}% Confidence` : ''"></span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="px-2 py-0.5 rounded-full text-xs font-bold"
+                    :class="selectedEmail && selectedEmail.analysis ? getIntentBadgeClass(selectedEmail.analysis.intent) : ''"
+                    x-text="selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.intent : ''"></span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-white border border-slate-200 text-slate-700"
+                    x-text="selectedEmail && selectedEmail.analysis ? `Tone: ${selectedEmail.analysis.tone}` : ''"></span>
+            </div>
+
+            <button @click="showRagDetails = !showRagDetails" 
+                    class="w-full flex items-center justify-between pt-1.5 border-t border-slate-200 text-[11px] font-semibold text-blue-700 hover:text-blue-800">
+              <span>FAISS RAG Style Matches</span>
+              <span x-text="showRagDetails ? '▲' : '▼'"></span>
+            </button>
+
+            <div x-show="showRagDetails" class="space-y-1.5 pt-1">
+              <template x-for="(r, i) in (selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.rag_context : [])" :key="i">
+                <div class="bg-white border border-slate-200 rounded p-2 text-[10px]">
+                  <div class="flex justify-between font-bold text-slate-800 mb-0.5">
+                    <span x-text="`#${i+1} ${r.notes}`"></span>
+                    <span class="text-blue-600 font-mono" x-text="`Sim: ${r.similarity.toFixed(3)}`"></span>
+                  </div>
+                  <p class="text-slate-500 italic line-clamp-2" x-text="r.content"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 2. 4 Strategic Reply Personas -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">4 Strategic Personas:</span>
+              <span class="text-[10px] text-blue-600 font-semibold" x-show="activeChipId">Persona Active</span>
+            </div>
+            
+            <div class="space-y-1.5">
+              <template x-for="chip in (selectedEmail ? selectedEmail.suggestion_chips : [])" :key="chip.id">
+                <button @click="applySuggestionVariant(chip.id)" 
+                        class="w-full text-left p-2.5 rounded-xl border transition text-xs"
+                        :class="activeChipId === chip.id ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/20' : 'border-slate-200 hover:border-blue-400 bg-white'">
+                  <div class="font-bold text-slate-800 flex items-center justify-between">
+                    <span x-text="chip.label"></span>
+                    <span class="text-blue-600 font-bold" x-show="activeChipId === chip.id">✓</span>
+                    <span class="text-slate-400" x-show="activeChipId !== chip.id">→</span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 mt-0.5" x-text="chip.desc"></p>
+                </button>
+              </template>
+            </div>
+          </div>
+
+          <!-- 3. Tone Selector -->
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Tone:</span>
+            <div class="flex items-center gap-1">
+              <button @click="changeTone('Professional')" class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                      :class="activeTone === 'Professional' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'">Prof</button>
+              <button @click="changeTone('Concise')" class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                      :class="activeTone === 'Concise' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'">Concise</button>
+              <button @click="changeTone('Friendly')" class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                      :class="activeTone === 'Friendly' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'">Friendly</button>
+            </div>
+          </div>
+
+          <!-- 4. Custom AI Guidance -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Custom Steering Prompt:</span>
+            <div class="flex gap-1.5">
+              <input type="text" x-model="customGuidance" placeholder="e.g. Propose Friday 4 PM instead..." @keyup.enter="applyCustomGuidance()"
+                     class="flex-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500">
+              <button @click="applyCustomGuidance()" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold">
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <!-- 5. Editable Draft Textarea -->
+          <div>
+            <div class="flex items-center justify-between mb-1 text-[11px] text-slate-500 font-medium">
+              <span class="font-bold text-slate-700">Editable Response Draft</span>
+              <button @click="changeTone(activeTone)" class="text-blue-600 text-[10px] font-bold">Reset</button>
+            </div>
+            <textarea x-model="currentDraftText" rows="7"
+                      class="w-full bg-slate-50 border border-slate-300 focus:border-blue-600 focus:bg-white rounded-xl p-3 text-xs text-slate-900 leading-relaxed transition focus:outline-none"></textarea>
+          </div>
+
+          <!-- 6. Actions: Save & Copy -->
+          <div class="grid grid-cols-2 gap-2">
+            <button @click="saveDraft()" :disabled="savingDraft || !currentDraftText.trim()" title="Save Draft (D)"
+                    class="py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 flex items-center justify-center gap-1.5 disabled:opacity-50">
+              <span x-show="!savingDraft">Save to Drafts (D)</span>
+              <span x-show="savingDraft">Saving...</span>
+            </button>
+
+            <button @click="copyDraftToClipboard()" :disabled="!currentDraftText.trim()" title="Copy (C)"
+                    class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5">
+              <span x-text="draftCopied ? '✓ Copied' : 'Copy (C)'"></span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: FULL-SCREEN FOCUS MODE (⛶ / F) -->
+  <!-- ===================================================================== -->
+  <div x-show="showFocusModal" class="fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <div @click.away="showFocusModal = false" class="bg-white border border-slate-200 rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Focus Header -->
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-white flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <button @click="showFocusModal = false" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
+            ✕
+          </button>
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900" x-text="selectedEmail ? selectedEmail.subject : ''"></h2>
+            <div class="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+              <span class="font-bold text-slate-700" x-text="selectedEmail ? selectedEmail.sender_clean : ''"></span>
+              <span>•</span>
+              <span class="font-mono" x-text="selectedEmail ? selectedEmail.date : ''"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button @click="saveDraft()" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-xs hover:bg-blue-700">
+            Save Draft to Gmail
+          </button>
+        </div>
+      </div>
+
+      <!-- Focus Content Scroll -->
+      <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/50">
+        <!-- In Simple Words & Expectation Cards -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+            <span class="text-xs font-extrabold uppercase tracking-wide text-blue-800 block mb-1">In Simple Words</span>
+            <p class="text-xs text-slate-700 leading-relaxed font-medium" x-text="selectedEmail && selectedEmail.insights ? selectedEmail.insights.simple_words : ''"></p>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <span class="text-xs font-extrabold uppercase tracking-wide text-amber-900 block mb-1">What They Expect</span>
+            <p class="text-xs text-amber-950 leading-relaxed font-medium" x-text="selectedEmail && selectedEmail.insights ? selectedEmail.insights.expectation : ''"></p>
+          </div>
+        </div>
+
+        <!-- Full Email Text in Apple Mail Typography -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-xs">
+          <div class="text-[15px] leading-relaxed text-slate-800 whitespace-pre-wrap font-sans selection:bg-blue-100"
+               x-text="selectedEmail ? selectedEmail.body : ''"></div>
+        </div>
+
+        <!-- Draft Drawer in Focus Mode -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Generated Response Draft</span>
+            <div class="flex gap-2">
+              <button @click="copyDraftToClipboard()" class="text-xs font-semibold text-slate-600 hover:text-slate-900">Copy Draft</button>
+            </div>
+          </div>
+          <textarea x-model="currentDraftText" rows="6" class="w-full border border-slate-200 rounded-xl p-3 text-xs leading-relaxed"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: KEYBOARD SHORTCUTS (?) -->
+  <!-- ===================================================================== -->
+  <div x-show="showShortcutsModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <div @click.away="showShortcutsModal = false" class="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded bg-slate-900 text-white flex items-center justify-center font-mono text-xs font-bold">?</div>
+          <h3 class="font-bold text-slate-900 text-sm">Superhuman Keyboard Shortcuts</h3>
+        </div>
+        <button @click="showShortcutsModal = false" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-600">Next Email</span>
+          <kbd class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono font-bold text-slate-800">J</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-600">Previous Email</span>
+          <kbd class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono font-bold text-slate-800">K</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-600">Star / Unstar Email</span>
+          <kbd class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono font-bold text-slate-800">S</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-600">Save Draft to Gmail</span>
+          <kbd class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono font-bold text-slate-800">D</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-600">Copy Draft to Clipboard</span>
+          <kbd class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono font-bold text-slate-800">C</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-600">Toggle Fullscreen Focus Mode</span>
+          <kbd class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono font-bold text-slate-800">F</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-600">Focus Filter Search</span>
+          <kbd class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono font-bold text-slate-800">/</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1">
+          <span class="text-slate-600">Close Modal / Overlay</span>
+          <kbd class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono font-bold text-slate-800">Esc</kbd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MODEL BENCHMARKS -->
+  <div x-show="showBenchModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <div @click.away="showBenchModal = false" class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-900">AIML Skill Lab Benchmarks</h3>
+        <button @click="showBenchModal = false" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+      </div>
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div class="bg-slate-50 p-3 rounded-lg border"><div class="text-xs text-slate-500 font-bold">ACCURACY</div><div class="text-xl font-extrabold text-blue-600">95.0%</div></div>
+        <div class="bg-slate-50 p-3 rounded-lg border"><div class="text-xs text-slate-500 font-bold">MACRO F1</div><div class="text-xl font-extrabold text-blue-600">0.9492</div></div>
+        <div class="bg-slate-50 p-3 rounded-lg border"><div class="text-xs text-slate-500 font-bold">LATENCY</div><div class="text-xl font-extrabold text-slate-800">8.43 ms</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SANDBOX -->
+  <div x-show="showSandboxModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <div @click.away="showSandboxModal = false" class="bg-white border border-slate-200 rounded-2xl w-full max-w-xl p-6 space-y-3 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-slate-900">Live Custom Sandbox</h3>
+        <button @click="showSandboxModal = false" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+      </div>
+      <input type="text" x-model="sbSender" placeholder="Sender" class="w-full border p-2 rounded text-xs">
+      <input type="text" x-model="sbSubject" placeholder="Subject" class="w-full border p-2 rounded text-xs">
+      <textarea x-model="sbBody" rows="3" placeholder="Body" class="w-full border p-2 rounded text-xs"></textarea>
+      <button @click="runSandboxInference()" class="w-full py-2 bg-blue-600 text-white font-bold rounded text-xs">Run Inference</button>
+      <div x-show="sbResult" class="bg-slate-50 p-3 rounded text-xs border" x-text="sbResult ? sbResult.suggested_draft : ''"></div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 transform translate-y-20 opacity-0 transition duration-300 pointer-events-none z-50">
+    <span id="toastMsg">Notification</span>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- ALPINE.JS CONTROLLER -->
+  <!-- ===================================================================== -->
+  <script>
+    function mailApp() {
+      return {
+        auth: { connected: false, email: '' },
+        inboxMode: 'live',
+        emails: [],
+        selectedEmail: null,
+        currentFilter: 'ALL',
+        searchQuery: '',
+        loading: false,
+        loadingMore: false,
+        savingDraft: false,
+        draftCopied: false,
+        showRagDetails: false,
+        activeTone: 'Professional',
+        activeChipId: 'confirm',
+        customGuidance: '',
+        checkedActionItems: [],
+        currentDraftText: '',
+        viewMode: 'prose',
+        starredIds: [],
+        showBenchModal: false,
+        showSandboxModal: false,
+        showFocusModal: false,
+        showShortcutsModal: false,
+        sbSender: '',
+        sbSubject: '',
+        sbBody: '',
+        sbResult: null,
+
+        async init() {
+          try {
+            const saved = localStorage.getItem('mm_starred');
+            if (saved) this.starredIds = JSON.parse(saved);
+          } catch(e) {}
+
+          await this.checkAuth();
+          await this.fetchEmails();
+          if (this.emails.length > 0) {
+            this.selectEmail(this.emails[0]);
+          }
+
+          // Register Superhuman Keyboard Shortcuts
+          window.addEventListener('keydown', (e) => {
+            const tag = document.activeElement ? document.activeElement.tagName : '';
+            if (['INPUT', 'TEXTAREA'].includes(tag)) {
+              if (e.key === 'Escape') document.activeElement.blur();
+              return;
+            }
+
+            if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+              e.preventDefault();
+              this.showShortcutsModal = !this.showShortcutsModal;
+            } else if (e.key === 'Escape') {
+              this.showBenchModal = false;
+              this.showSandboxModal = false;
+              this.showFocusModal = false;
+              this.showShortcutsModal = false;
+            } else if (e.key === 'j' || e.key === 'ArrowDown') {
+              e.preventDefault();
+              this.navigateEmail(1);
+            } else if (e.key === 'k' || e.key === 'ArrowUp') {
+              e.preventDefault();
+              this.navigateEmail(-1);
+            } else if (e.key === 's') {
+              if (this.selectedEmail) this.toggleStar(this.selectedEmail.id);
+            } else if (e.key === 'f') {
+              this.showFocusModal = !this.showFocusModal;
+            } else if (e.key === 'd') {
+              e.preventDefault();
+              this.saveDraft();
+            } else if (e.key === 'c') {
+              e.preventDefault();
+              this.copyDraftToClipboard();
+            } else if (e.key === '/') {
+              e.preventDefault();
+              const inp = document.querySelector('input[placeholder*="Filter emails"]');
+              if (inp) inp.focus();
+            }
+          });
+        },
+
+        async checkAuth() {
+          try {
+            const res = await fetch('/api/auth/status');
+            const data = await res.json();
+            this.auth = data;
+          } catch(e) {}
+        },
+
+        async logout() {
+          if (!confirm("Sign out of Gmail?")) return;
+          await fetch('/api/auth/logout', { method: 'POST' });
+          this.auth = { connected: false, email: '' };
+          this.emails = [];
+          this.selectedEmail = null;
+          this.showToast('Signed out successfully');
+        },
+
+        async login() {
+          await fetch('/api/auth/login', { method: 'POST' });
+          this.showToast('Login authorization opened in browser...');
+          let count = 0;
+          const poll = setInterval(async () => {
+            count++;
+            await this.checkAuth();
+            if (this.auth.connected) {
+              clearInterval(poll);
+              this.showToast('Signed in successfully!');
+              await this.fetchEmails();
+            }
+            if (count > 40) clearInterval(poll);
+          }, 2000);
+        },
+
+        async switchMode(mode) {
+          this.inboxMode = mode;
+          this.currentFilter = 'ALL';
+          await this.fetchEmails(false);
+          if (this.emails.length > 0) this.selectEmail(this.emails[0]);
+          this.showToast(mode === 'live' ? 'Switched to Live Gmail' : 'Switched to Viva Lab Dataset');
+        },
+
+        async syncInbox() {
+          await this.fetchEmails(true);
+          this.showToast('Synced inbox!');
+        },
+
+        async fetchEmails(forceRefresh = false, count = 25) {
+          this.loading = true;
+          try {
+            const res = await fetch(`/api/emails?max_results=${count}&mode=${this.inboxMode}&force_refresh=${forceRefresh}`);
+            const data = await res.json();
+            this.emails = data.emails || [];
+            if (this.emails.length > 0 && !this.selectedEmail) {
+              this.selectEmail(this.emails[0]);
+            }
+          } catch(e) {
+            console.error(e);
+          } finally {
+            this.loading = false;
+            this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+          }
+        },
+
+        async loadMoreEmails() {
+          this.loadingMore = true;
+          try {
+            const nextCount = Math.min(this.emails.length + 25, 50);
+            const res = await fetch(`/api/emails?max_results=${nextCount}&mode=${this.inboxMode}&force_refresh=true`);
+            const data = await res.json();
+            this.emails = data.emails || [];
+            this.showToast(`Fetched ${this.emails.length} total messages`);
+          } catch(e) {
+            alert(e);
+          } finally {
+            this.loadingMore = false;
+            this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+          }
+        },
+
+        setFilter(f) {
+          this.currentFilter = f;
+          const list = this.filteredEmails;
+          if (list.length > 0) {
+            this.selectEmail(list[0]);
+          } else {
+            this.selectedEmail = null;
+          }
+        },
+
+        navigateEmail(direction) {
+          const list = this.filteredEmails;
+          if (!list || list.length === 0) return;
+          if (!this.selectedEmail) {
+            this.selectEmail(list[0]);
+            return;
+          }
+          const currIdx = list.findIndex(e => e.id === this.selectedEmail.id);
+          const nextIdx = Math.max(0, Math.min(list.length - 1, currIdx + direction));
+          this.selectEmail(list[nextIdx]);
+        },
+
+        get filteredEmails() {
+          const q = (this.searchQuery || '').toLowerCase();
+          return (this.emails || []).filter(em => {
+            let pass = false;
+            if (this.currentFilter === 'ALL') pass = true;
+            else if (this.currentFilter === 'STARRED') pass = this.isStarred(em.id);
+            else if (this.currentFilter === 'ACTIONABLE') pass = em.auto_reply_recommended;
+            else if (this.currentFilter === 'BOTS_AND_PROMOS') pass = !em.auto_reply_recommended;
+            else pass = em.analysis && em.analysis.intent === this.currentFilter;
+
+            const sub = (em.subject || '').toLowerCase();
+            const snd = (em.sender || '').toLowerCase();
+            const bdy = (em.body || '').toLowerCase();
+            const searchPass = !q || sub.includes(q) || snd.includes(q) || bdy.includes(q);
+
+            return pass && searchPass;
+          });
+        },
+
+        get countActionable() {
+          return (this.emails || []).filter(e => e.auto_reply_recommended).length;
+        },
+
+        get countBotsAndPromos() {
+          return (this.emails || []).filter(e => !e.auto_reply_recommended).length;
+        },
+
+        countCategory(cat) {
+          return (this.emails || []).filter(e => e.analysis && e.analysis.intent === cat).length;
+        },
+
+        isStarred(id) {
+          return this.starredIds.includes(id);
+        },
+
+        toggleStar(id) {
+          if (this.isStarred(id)) {
+            this.starredIds = this.starredIds.filter(i => i !== id);
+          } else {
+            this.starredIds.push(id);
+          }
+          try {
+            localStorage.setItem('mm_starred', JSON.stringify(this.starredIds));
+          } catch(e) {}
+        },
+
+        selectEmail(em) {
+          if (!em) return;
+          this.selectedEmail = em;
+          this.showRagDetails = false;
+          this.activeTone = 'Professional';
+          this.activeChipId = 'confirm';
+          this.customGuidance = '';
+          this.checkedActionItems = [];
+          this.currentDraftText = em.suggested_draft || '';
+          this.viewMode = 'prose';
+          this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+        },
+
+        async regenerateReply() {
+          if (!this.selectedEmail) return;
+          try {
+            const res = await fetch('/api/generate-reply', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sender: this.selectedEmail.sender,
+                subject: this.selectedEmail.subject,
+                body: this.selectedEmail.body,
+                intent: this.selectedEmail.analysis ? this.selectedEmail.analysis.intent : 'Action Required',
+                tone: this.activeTone,
+                variant: this.activeChipId,
+                custom_instruction: this.customGuidance,
+                checked_action_items: this.checkedActionItems
+              })
+            });
+            const data = await res.json();
+            this.currentDraftText = data.reply || '';
+          } catch(e) {}
+        },
+
+        async changeTone(tone) {
+          this.activeTone = tone;
+          await this.regenerateReply();
+        },
+
+        async applySuggestionVariant(variantId) {
+          this.activeChipId = variantId;
+          await this.regenerateReply();
+          this.showToast('Updated draft with selected persona!');
+        },
+
+        async applyCustomGuidance() {
+          if (!this.selectedEmail || !this.customGuidance.trim()) return;
+          await this.regenerateReply();
+          this.showToast('Custom guidance integrated into draft!');
+        },
+
+        async onActionItemToggled() {
+          await this.regenerateReply();
+        },
+
+        copyBodyText() {
+          if (!this.selectedEmail) return;
+          navigator.clipboard.writeText(this.selectedEmail.body || '');
+          this.showToast('Email text copied!');
+        },
+
+        copyDraftToClipboard() {
+          if (!this.currentDraftText) return;
+          navigator.clipboard.writeText(this.currentDraftText);
+          this.draftCopied = true;
+          this.showToast('Draft copied to clipboard!');
+          setTimeout(() => { this.draftCopied = false; }, 2000);
+        },
+
+        async saveDraft() {
+          if (!this.selectedEmail) return;
+          this.savingDraft = true;
+          try {
+            const res = await fetch('/api/draft', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                thread_id: this.selectedEmail.thread_id,
+                to: this.selectedEmail.sender,
+                subject: `Re: ${this.selectedEmail.subject}`,
+                body: this.currentDraftText
+              })
+            });
+            const data = await res.json();
+            this.showToast(`Saved to Gmail Drafts folder! (${data.mode})`);
+          } catch(e) {
+            alert('Failed to save draft: ' + e);
+          } finally {
+            this.savingDraft = false;
+          }
+        },
+
+        showToast(msg) {
+          const t = document.getElementById('toast');
+          const m = document.getElementById('toastMsg');
+          if (t && m) {
+            m.innerText = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2500);
+          }
+        },
+
+        formatDate(dateStr) {
+          if (!dateStr || dateStr.includes('Today')) return 'Today';
+          const d = new Date(dateStr);
+          return isNaN(d) ? 'Today' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        },
+
+        getIntentBadgeClass(intent) {
+          switch(intent) {
+            case 'Academic/Faculty': return 'bg-blue-50 text-blue-700 border border-blue-200';
+            case 'Internship/Recruiter': return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+            case 'Event/Club': return 'bg-purple-50 text-purple-700 border border-purple-200';
+            case 'Action Required': return 'bg-amber-50 text-amber-700 border border-amber-200';
+            default: return 'bg-slate-100 text-slate-700 border border-slate-200';
+          }
+        },
+
+        async runSandboxInference() {
+          if (!this.sbBody.trim() && !this.sbSubject.trim()) return;
+          const res = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sender: this.sbSender, subject: this.sbSubject, body: this.sbBody })
+          });
+          this.sbResult = await res.json();
+        }
+      };
+    }
+  </script>
+</body>
+</html>

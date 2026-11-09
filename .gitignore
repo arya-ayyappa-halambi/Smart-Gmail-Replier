@@ -1,0 +1,42 @@
+# Secrets & Credentials (CRITICAL - NEVER COMMIT)
+credentials.json
+token.json
+client_secret*.json
+*.env
+.env
+.env.*
+!.env.example
+
+# Python Virtual Environments & Bytecode
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Application Runtime Logs & Local Cache
+*.log
+data/drafts_log.json
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local IDE Configuration
+.idea/
+.vscode/
+*.swp
+*.swo
+.agent/

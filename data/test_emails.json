@@ -1,0 +1,162 @@
+[
+  {
+    "id": "test_01",
+    "subject": "Review of Final Lab Viva Schedule for AIML Skill Lab",
+    "sender": "dr.ramesh@bmsce.ac.in",
+    "body": "Dear Arya, The external examiner has confirmed their availability for Monday morning. Please ensure the repository containing the FastMCP server, evaluate.py logs, and architecture documentation is prepared for display on projector.",
+    "expected_intent": "Academic/Faculty",
+    "expected_urgency": "High"
+  },
+  {
+    "id": "test_02",
+    "subject": "Inquiry regarding PhD Research Seminar on Agentic Architectures",
+    "sender": "prof.iyer@bmsce.ac.in",
+    "body": "Hi Arya, Could you share the reference slides from the recent seminar on tool-use protocols? Several faculty members in our lab were interested in reviewing your evaluation methodology.",
+    "expected_intent": "Academic/Faculty",
+    "expected_urgency": "Low"
+  },
+  {
+    "id": "test_03",
+    "subject": "Attendance Shortage Warning - Deep Learning Practicals",
+    "sender": "attendance@bmsce.ac.in",
+    "body": "Your current attendance in Course AI604 stands at 78%. You require 2 more attendance credits before next Tuesday to be eligible for hall ticket issuance.",
+    "expected_intent": "Academic/Faculty",
+    "expected_urgency": "High"
+  },
+  {
+    "id": "test_04",
+    "subject": "Clarification on Mini-Project Rubrics",
+    "sender": "faculty.support@bmsce.ac.in",
+    "body": "Please review the updated scoring rubrics for the 6th semester mini project. Marks are divided into 40% code quality, 30% novelty, and 30% viva demonstration.",
+    "expected_intent": "Academic/Faculty",
+    "expected_urgency": "Medium"
+  },
+  {
+    "id": "test_05",
+    "subject": "Interview Invitation: AI Systems Engineering Intern @ TensorCore",
+    "sender": "sarah.recruiting@tensorcore.ai",
+    "body": "Hi Arya, We were very impressed with your Smart Replier and FastMCP work. We would like to invite you for a 60-minute technical round focused on retrieval algorithms and agent design. Are you free this Friday after 4:00 PM IST?",
+    "expected_intent": "Internship/Recruiter",
+    "expected_urgency": "High"
+  },
+  {
+    "id": "test_06",
+    "subject": "Application Status: Summer 2026 Machine Learning Fellow",
+    "sender": "talent-ops@vertexlabs.com",
+    "body": "Hi Arya, Thank you for completing the technical screening. The hiring manager is currently reviewing your project codebase and will follow up with schedule details by next Monday.",
+    "expected_intent": "Internship/Recruiter",
+    "expected_urgency": "Low"
+  },
+  {
+    "id": "test_07",
+    "subject": "Coding Challenge Link: Google Summer of Code / Cloud Prep",
+    "sender": "assessments@metacareers.com",
+    "body": "Dear Applicant, Your assessment for the AI Infrastructure internship track has been scheduled. Please complete the HackerRank challenge within 48 hours of receiving this email.",
+    "expected_intent": "Internship/Recruiter",
+    "expected_urgency": "High"
+  },
+  {
+    "id": "test_08",
+    "subject": "Follow up regarding AI Intern role in Bengaluru",
+    "sender": "rahul.t@startupventures.in",
+    "body": "Hi Arya, Reaching out to see if you would be open to a 6-month on-site internship in Koramangala working with LLM agents. Let me know if you would like to hop on a brief call.",
+    "expected_intent": "Internship/Recruiter",
+    "expected_urgency": "Medium"
+  },
+  {
+    "id": "test_09",
+    "subject": "BMSCE Hackathon 2026: Mentor Briefing and Schedule",
+    "sender": "leads@hackbmsce.in",
+    "body": "Hey Arya, Here is the schedule for Saturday's 24-hour hackathon. The mentor round for AI/ML projects starts at 8:00 PM in the CSE seminar hall. Please confirm your session slot.",
+    "expected_intent": "Event/Club",
+    "expected_urgency": "Medium"
+  },
+  {
+    "id": "test_10",
+    "subject": "GDSC Core Team Meeting - Speaker finalization",
+    "sender": "lead@gdsc-bmsce.com",
+    "body": "Hi leads, Quick reminder that we have a meeting today at 5:30 PM in the student lounge to finalize the guest speaker honorarium and venue setup for DevFest.",
+    "expected_intent": "Event/Club",
+    "expected_urgency": "High"
+  },
+  {
+    "id": "test_11",
+    "subject": "Call for Papers: National Student Research Symposium on AI",
+    "sender": "symposium@rvce.edu.in",
+    "body": "Submissions are open for the undergraduate research symposium. Cash prizes for best paper awards. Track topics include RAG, FastMCP, and Computer Vision.",
+    "expected_intent": "Event/Club",
+    "expected_urgency": "Low"
+  },
+  {
+    "id": "test_12",
+    "subject": "AeroBMSCE Avionics Sub-system Design Sync",
+    "sender": "avionics@aerobmsce.org",
+    "body": "Hey team, We need to calibrate the telemetry sensors on the drone before the flight test on Sunday. Meet in the workshop room at 4:30 PM today.",
+    "expected_intent": "Event/Club",
+    "expected_urgency": "Medium"
+  },
+  {
+    "id": "test_13",
+    "subject": "URGENT: Database Migration Password Reset Required Immediately",
+    "sender": "devops@bmsce-projects.net",
+    "body": "We are rotating database credentials on the staging cluster at 6:00 PM today. Please export your local dumps and re-authenticate your environment variables immediately.",
+    "expected_intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "test_14",
+    "subject": "Action Required: Sign Proctoring Consent Form for University Exams",
+    "sender": "coe@vtu.ac.in",
+    "body": "All candidates appearing for the odd semester examinations must verify their biometric registration details and submit the signed proctoring declaration before 5:00 PM tomorrow.",
+    "expected_intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "test_15",
+    "subject": "GitHub Action Failure: Docker Build Failed in repo 'gateway'",
+    "sender": "notifications@github.com",
+    "body": "The workflow 'Deploy to Cloud Run' failed on commit 8b4f12 due to a missing environment variable 'GMAIL_TOKEN_SECRET'. Immediate intervention is needed to restore deployment.",
+    "expected_intent": "Action Required",
+    "urgency": "High"
+  },
+  {
+    "id": "test_16",
+    "subject": "Action Required: Update Student Profile on VTU Portal",
+    "sender": "support@vtuportal.ac.in",
+    "body": "Please log into the student portal and confirm your mother's name spelling and ABC ID (Academic Bank of Credits) by Friday evening to ensure accurate marks card printing.",
+    "expected_intent": "Action Required",
+    "urgency": "Medium"
+  },
+  {
+    "id": "test_17",
+    "subject": "Limited Time: Flat 65% Discount on AI & Machine Learning Nanodegree",
+    "sender": "sales@edutech-deals-now.com",
+    "body": "Don't miss our biggest sale of the year! Learn LangChain, Transformers, and PyTorch with 1-on-1 mentorship. Use code FUTURE65 at checkout. Offer ends in 3 hours!",
+    "expected_intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "test_18",
+    "subject": "You have won a free iPhone 16 Pro! Claim within 10 minutes",
+    "sender": "prizes@lucky-draw-rewards.club",
+    "body": "Congratulations subscriber! Your email was chosen in our monthly tech giveaway sweepstakes. Click the link below and pay nominal shipping charges to claim your prize.",
+    "expected_intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "test_19",
+    "subject": "Swiggy One: Flat 50% discount on your favorite restaurants",
+    "sender": "offers@swiggy.in",
+    "body": "Craving dessert or burgers? Enjoy free delivery with Swiggy One plus extra 50% off on partner restaurants across Bengaluru. Order now!",
+    "expected_intent": "Promotional/Spam",
+    "urgency": "Low"
+  },
+  {
+    "id": "test_20",
+    "subject": "Special Pre-Approved Credit Card with Zero Annual Fees",
+    "sender": "card-offers@bank-promotions-direct.in",
+    "body": "Dear Customer, Get a lifetime free credit card with 5% cashback on all online food and shopping deliveries. Instant approval with zero documentation. Apply now.",
+    "expected_intent": "Promotional/Spam",
+    "urgency": "Low"
+  }
+]

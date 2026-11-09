@@ -1,0 +1,122 @@
+[
+  {
+    "id": "style_acad_01",
+    "intent": "Academic/Faculty",
+    "tone": "Respectful & Formal",
+    "recipient": "Professor / Faculty Advisor",
+    "subject_pattern": "Re: Lab Report / Assignment Submission / Research Project",
+    "body": "Dear Dr. Ramesh,\n\nThank you for the detailed feedback on our AIML Skill Lab project milestone. I have incorporated your suggestions regarding the evaluation metrics and added confusion matrix visualization to our report.\n\nI have uploaded the revised document and code repository link to the course portal. Please let me know if you would like me to present these updates during office hours tomorrow.\n\nBest regards,\nArya Ayyappa Halambi\nDept. of AIML, BMSCE"
+  },
+  {
+    "id": "style_acad_02",
+    "intent": "Academic/Faculty",
+    "tone": "Respectful & Inquisitive",
+    "recipient": "Course Instructor",
+    "subject_pattern": "Re: Query regarding Project Guidelines / Exam Schedule",
+    "body": "Dear Prof. Sharma,\n\nI hope you are doing well. I had a quick question regarding the final deliverable for the Deep Learning module. Should our test set evaluations include ablation studies on the transformer attention heads, or is the baseline accuracy report sufficient?\n\nI am happy to drop by during your faculty hours on Thursday afternoon if that is more convenient.\n\nThank you for your time and guidance.\n\nSincerely,\nArya Ayyappa Halambi\nUSN: 1BM22AI045"
+  },
+  {
+    "id": "style_acad_03",
+    "intent": "Academic/Faculty",
+    "tone": "Apologetic & Punctual",
+    "recipient": "Lab In-charge",
+    "subject_pattern": "Re: Lab Attendance / Equipment Requisition",
+    "body": "Dear Prof. Ananya,\n\nThank you for the update regarding the GPU server access keys. I will be attending the scheduled lab session tomorrow at 2:00 PM and will ensure our team runs the benchmark scripts within our allotted time quota.\n\nBest regards,\nArya Ayyappa Halambi\nDept. of AIML"
+  },
+  {
+    "id": "style_recruiter_01",
+    "intent": "Internship/Recruiter",
+    "tone": "Enthusiastic & Professional",
+    "recipient": "Talent Acquisition / HR",
+    "subject_pattern": "Re: Interview Invitation - Machine Learning Intern",
+    "body": "Hi Priya,\n\nThank you very much for reaching out with this exciting opportunity! I would be delighted to speak with the engineering team regarding the Machine Learning Intern role at Acme AI.\n\nI am available for the technical interview this Thursday or Friday between 4:00 PM and 7:00 PM IST. Alternatively, anytime on Saturday works well for me.\n\nPlease let me know which time slot suits the team best, and I will gladly confirm the calendar invitation.\n\nBest regards,\nArya Ayyappa Halambi\nB.M.S. College of Engineering\nPortfolio: github.com/AryaAyyappaHalambi"
+  },
+  {
+    "id": "style_recruiter_02",
+    "intent": "Internship/Recruiter",
+    "tone": "Courteous & Structured",
+    "recipient": "Recruiter / Hiring Manager",
+    "subject_pattern": "Re: Application Status / Coding Assessment",
+    "body": "Hi Vikram,\n\nThank you for sharing the HackerRank assessment link. I have completed the test and submitted the solution along with unit test explanations for the algorithmic problem.\n\nAs requested, I have also attached an updated copy of my resume highlighting my recent work with FastMCP, RAG pipelines, and model evaluation.\n\nLooking forward to hearing from you regarding the next steps.\n\nWarm regards,\nArya Ayyappa Halambi"
+  },
+  {
+    "id": "style_recruiter_03",
+    "intent": "Internship/Recruiter",
+    "tone": "Polite Clarification",
+    "recipient": "Campus Placement Cell / Recruiter",
+    "subject_pattern": "Re: Pre-Placement Talk / Shortlist Confirmation",
+    "body": "Dear Placement Team,\n\nThank you for sharing the company shortlist for the upcoming on-campus recruitment drive. I confirm my participation in the orientation session scheduled for Wednesday morning.\n\nCould you please let me know if we need to bring physical copies of our transcripts, or if digital submissions through the placement portal suffice?\n\nBest regards,\nArya Ayyappa Halambi\nUSN: 1BM22AI045"
+  },
+  {
+    "id": "style_club_01",
+    "intent": "Event/Club",
+    "tone": "Collaborative & Action-Oriented",
+    "recipient": "Club Lead / Organizing Committee",
+    "subject_pattern": "Re: Hackathon Workshop Logistics / Meetup Planning",
+    "body": "Hi Rohan,\n\nThanks for coordinating the speaker slots for the upcoming AI Hackathon. I can definitely take charge of conducting the FastMCP and Agentic Workflows hands-on workshop on Day 1 from 3:00 PM to 4:30 PM.\n\nI will prepare the starter Colab notebooks and share the GitHub template repository by Monday evening so the tech team can verify it.\n\nCheers,\nArya\nTechnical Lead, AI Student Association"
+  },
+  {
+    "id": "style_club_02",
+    "intent": "Event/Club",
+    "tone": "Friendly & Confirmatory",
+    "recipient": "Peer Club Member",
+    "subject_pattern": "Re: Design Review / Poster Approval",
+    "body": "Hey Sneha,\n\nThe event poster looks fantastic! The typography and sponsor banner placement are clean. Just one small tweak: let's make sure the QR code links directly to the Devpost registration page rather than the generic club website.\n\nOnce that's updated, let's get it printed and shared on our Discord announcements channel.\n\nThanks,\nArya"
+  },
+  {
+    "id": "style_action_01",
+    "intent": "Action Required",
+    "tone": "Urgent & Decisive",
+    "recipient": "Colleague / Project Teammate / Administrative Staff",
+    "subject_pattern": "Re: URGENT: Server Down / Deadline Confirmation",
+    "body": "Hi Karthik,\n\nReceived your alert. I have checked the cloud instance and restarted the inference service with the updated configuration. The API endpoint is now healthy and returning 200 OK responses.\n\nI am monitoring the latency logs for the next 30 minutes to make sure memory consumption remains stable. Let me know if you see any further drops.\n\nArya"
+  },
+  {
+    "id": "style_action_02",
+    "intent": "Action Required",
+    "tone": "Prompt & Compliant",
+    "recipient": "College Administration / Examination Office",
+    "subject_pattern": "Re: Action Required: Examination Hall Ticket Verification",
+    "body": "Dear Academic Office,\n\nI have reviewed my elective registrations and uploaded the verified photo identity proof to the student portal as requested. Please find the transaction acknowledgment number (REF-98421) for the exam fee clearance.\n\nKindly confirm once the hall ticket is approved for download.\n\nThank you,\nArya Ayyappa Halambi\nUSN: 1BM22AI045"
+  },
+  {
+    "id": "style_action_03",
+    "intent": "Action Required",
+    "tone": "Direct & Accountable",
+    "recipient": "Team Lead / Project Coordinator",
+    "subject_pattern": "Re: Code Review Requested: PR #42",
+    "body": "Hi Dev Team,\n\nI have reviewed the PR and left comments on lines 45-60 regarding error handling for missing OAuth tokens. Once the unit test for token refresh is added, I will approve and merge into main.\n\nThanks,\nArya"
+  },
+  {
+    "id": "style_decline_01",
+    "intent": "Event/Club",
+    "tone": "Polite Decline",
+    "recipient": "External Organizer",
+    "subject_pattern": "Re: Invitation to Panel Discussion",
+    "body": "Dear Organizing Committee,\n\nThank you very much for inviting me to participate in the panel discussion on AI in Education. Unfortunately, due to overlapping university mid-term examinations, I will be unable to participate on this occasion.\n\nI appreciate you thinking of me and wish you a highly successful event. I would love to stay connected for future editions.\n\nWarm regards,\nArya Ayyappa Halambi"
+  },
+  {
+    "id": "style_general_01",
+    "intent": "Academic/Faculty",
+    "tone": "Brief & Courteous",
+    "recipient": "Department Office",
+    "subject_pattern": "Re: NOC Request for Internship",
+    "body": "Dear Dept. Coordinator,\n\nPlease find attached the internship offer letter from Acme AI along with the filled No Objection Certificate (NOC) form. As per the department guidelines, I have secured endorsement from my proctor Dr. Ramesh.\n\nKindly process the signature at your earliest convenience.\n\nThank you,\nArya Ayyappa Halambi"
+  },
+  {
+    "id": "style_tech_01",
+    "intent": "Action Required",
+    "tone": "Technical & Precise",
+    "recipient": "GitHub / Open Source Maintainer",
+    "subject_pattern": "Re: Issue #104: FastMCP Transport Timeout",
+    "body": "Hi maintainers,\n\nI reproduced the issue on macOS Darwin with Python 3.12. The issue stems from the stdio pipe buffering before EOF. Passing flush=True in the event loop writer resolves the hang.\n\nI have submitted PR #108 with the regression test.\n\nBest,\nArya"
+  },
+  {
+    "id": "style_recruiter_04",
+    "intent": "Internship/Recruiter",
+    "tone": "Follow-Up & Grateful",
+    "recipient": "Talent Partner",
+    "subject_pattern": "Re: Thank you - Machine Learning Interview",
+    "body": "Hi Anjali,\n\nThank you and the engineering team for the engaging conversation earlier today. I really enjoyed learning more about your real-time RAG architecture and scaling challenges.\n\nPlease let me know if you need any additional code samples or references from my end. I remain very enthusiastic about contributing to the team.\n\nBest regards,\nArya Ayyappa Halambi"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "smart-gmail-replier": {
+      "command": "/Users/aryaayyappahalambi/Desktop/smart-gmail-replier/.venv/bin/python",
+      "args": [
+        "/Users/aryaayyappahalambi/Desktop/smart-gmail-replier/gmail_mcp.py"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
