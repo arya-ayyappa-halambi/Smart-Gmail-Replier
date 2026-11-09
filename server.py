@@ -35,6 +35,7 @@ sys.path.insert(0, str(BASE_DIR))
 
 import gmail_auth
 import gmail_mcp
+import llm_engine
 import ml_pipeline
 
 STATIC_DIR = BASE_DIR / "static"
@@ -248,104 +249,10 @@ def get_suggestion_chips(intent: str) -> List[Dict[str, str]]:
 
 def extract_ai_insights(subject: str, sender: str, body: str, intent: str) -> Dict[str, Any]:
     """
-    Extracts deep content understanding: 'In Simple Words', 'What They Are Expecting',
-    detected questions, deadlines, and action items.
+    Extracts deep content understanding using qwen2.5-coder:7b:
+    'In Simple Words', 'What They Are Expecting', detected questions, deadlines, and action items.
     """
-    clean_sender = extract_clean_name(sender)
-    clean_sub = re.sub(r'^(Re:\s*|Fwd:\s*)+', '', subject, flags=re.IGNORECASE).strip()
-
-    # 1. "In Simple Words" & "What They Are Expecting"
-    if intent == "Academic/Faculty":
-        simple_words = f"{clean_sender} is contacting you regarding {clean_sub} deliverables, requesting preparation of slides, repository, and schedule confirmation."
-        expectation = "Confirm availability for the viva/presentation and verify project slides and repository are ready."
-    elif intent == "Internship/Recruiter":
-        simple_words = f"{clean_sender} is reaching out regarding an engineering or research role. They want to check your availability for a technical interview or next steps."
-        expectation = "Confirm your preferred 60-minute interview time slot and share your portfolio/availability."
-    elif intent == "Event/Club":
-        simple_words = f"{clean_sender} is organizing {clean_sub} and wants to verify your participation, presentation outline, or logistics requirements."
-        expectation = "Confirm your participation, workshop schedule, and any projector or hardware needs."
-    elif intent == "Action Required":
-        simple_words = f"Urgent system notification regarding {clean_sub}. Requires immediate attention, log inspection, or action verification."
-        expectation = "Investigate the alert promptly and acknowledge or resolve the pending action."
-    else:
-        simple_words = f"Automated digest, update, or newsletter notification from {clean_sender} covering {clean_sub}."
-        expectation = "Informational update; no immediate reply required unless you wish to unsubscribe or archive."
-
-    # 2. Extract Questions
-    questions = []
-    question_candidates = re.findall(r'([^.!?\n]*\?)', body)
-    for q in question_candidates:
-        clean_q = q.strip()
-        if len(clean_q) > 10 and clean_q not in questions:
-            questions.append(clean_q)
-        if len(questions) >= 2:
-            break
-
-    # 3. Extract Schedule & Deadlines
-    date_patterns = [
-        r'\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)(?:\s+(?:morning|afternoon|evening|at\s+\d{1,2}(?::\d{2})?\s*(?:AM|PM|IST)?))?\b',
-        r'\b\d{1,2}(?::\d{2})?\s*(?:AM|PM|IST)\b',
-        r'\b(?:today|tomorrow|this weekend|next week|by\s+\d{1,2}\s*(?:AM|PM|IST)?)\b',
-        r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?\b',
-    ]
-    deadlines = []
-    text_to_search = f"{subject} {body}"
-    for pat in date_patterns:
-        matches = re.findall(pat, text_to_search, flags=re.IGNORECASE)
-        for m in matches:
-            cleaned_m = m.strip()
-            if cleaned_m and len(cleaned_m) > 2 and cleaned_m not in deadlines:
-                deadlines.append(cleaned_m)
-        if len(deadlines) >= 3:
-            break
-
-    # 4. Action Items Checklist
-    if intent == "Academic/Faculty":
-        action_items = [
-            "Verify FastMCP slides and architecture diagrams",
-            "Prepare benchmark evaluation report for projector review",
-            "Confirm attendance & time slot with faculty"
-        ]
-    elif intent == "Internship/Recruiter":
-        action_items = [
-            "Confirm 60-minute technical interview availability",
-            "Review FastMCP agent and vector RAG portfolio links",
-            "Share GitHub and LinkedIn profiles"
-        ]
-    elif intent == "Event/Club":
-        action_items = [
-            "Confirm workshop participation and schedule",
-            "Check HDMI projector and lab venue availability",
-            "Distribute Colab / FastMCP starter files"
-        ]
-    elif intent == "Action Required":
-        action_items = [
-            "Inspect system logs and error trace",
-            "Verify service health and disk capacity",
-            "Acknowledge alert resolution status"
-        ]
-    else:
-        action_items = [
-            "Review digest updates and articles",
-            "Manage newsletter subscription preferences"
-        ]
-
-    # 5. Domain Verification & Reading Time
-    trusted_domains = ["bmsce.ac.in", "tensorcore.ai", "google.com", "deepmind.com", "github.com", "linkedin.com"]
-    domain_verified = any(d in sender.lower() for d in trusted_domains)
-    word_count = len(body.split())
-    reading_time = f"~{max(1, round(word_count / 150))} min read • {word_count} words"
-
-    return {
-        "summary": simple_words,
-        "simple_words": simple_words,
-        "expectation": expectation,
-        "questions": questions,
-        "deadlines": deadlines[:3],
-        "action_items": action_items,
-        "domain_verified": domain_verified,
-        "reading_time": reading_time,
-    }
+    return llm_engine.analyze_email_with_llm(subject, sender, body, intent)
 
 
 def compose_smart_reply(
@@ -358,215 +265,36 @@ def compose_smart_reply(
     custom_instruction: str = "",
     checked_action_items: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    """Composes a tailored, tone-matched draft reply across 4 distinct strategic personas."""
-    clean_sender = extract_clean_name(sender)
-    clean_sub = re.sub(r'^(Re:\s*|Fwd:\s*)+', '', subject, flags=re.IGNORECASE).strip()
-
-    is_academic = intent == "Academic/Faculty"
-    is_recruiter = intent == "Internship/Recruiter"
+    """Composes a tailored, context-aware draft reply across 4 distinct strategic personas using qwen2.5-coder:7b."""
     is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
 
-    # Salutation
-    if is_academic:
-        salutation = f"Dear {clean_sender},"
-    elif is_promo:
-        salutation = f"Hello {clean_sender} Support Team,"
-    else:
-        first_name = clean_sender.split()[0]
-        salutation = f"Hi {first_name}," if tone in ["Friendly", "Concise"] else f"Hello {first_name},"
+    reply_text = llm_engine.generate_persona_reply_with_llm(
+        sender=sender,
+        subject=subject,
+        body=body,
+        intent=intent,
+        tone=tone,
+        variant=variant,
+        custom_instruction=custom_instruction,
+        checked_action_items=checked_action_items,
+    )
 
-    # Signature Rules (Strict USN control: ONLY on Academic emails)
-    if is_academic:
-        signature = (
-            "Best regards,\n"
-            "H R Arya Ayyappa Halambi\n"
-            "USN: 1BF25CS095\n"
-            "Department of Computer Science and Engineering\n"
-            "B.M.S. College of Engineering (BMSCE)"
-        )
-    elif is_recruiter:
-        signature = (
-            "Best regards,\n"
-            "H R Arya Ayyappa Halambi\n"
-            "B.M.S. College of Engineering (BMSCE)\n"
-            "Portfolio: github.com/aryaayyappa | LinkedIn: linkedin.com/in/arya-ayyappa-halambi"
-        )
-    else:
-        signature = (
-            "Best regards,\n"
-            "Arya Ayyappa Halambi\n"
-            "B.M.S. College of Engineering (BMSCE)"
-        )
-
-    # Body Construction across 4 Personas
-    if is_promo:
-        if variant == "confirm":
-            msg = (
-                f"Thank you for contacting me regarding {clean_sub}.\n\n"
-                f"Please unsubscribe this email address from recurring promotional notifications, digests, and marketing distribution lists."
-            )
-        elif variant == "inquire":
-            msg = (
-                f"Thank you for reaching out regarding {clean_sub}.\n\n"
-                f"Could you provide information on the current data retention and subscription preferences associated with this account?"
-            )
-        elif variant == "reschedule":
-            msg = (
-                f"Thank you for the update regarding {clean_sub}.\n\n"
-                f"I have received the notification and archived it for future reference."
-            )
-        else:  # decline
-            msg = (
-                f"Thank you for the information regarding {clean_sub}.\n\n"
-                f"I am currently not seeking additional subscription updates or offers. Thank you for your consideration."
-            )
-    elif is_academic:
-        if variant == "inquire":
-            msg = (
-                f"Thank you for the update regarding {clean_sub}.\n\n"
-                f"Could we schedule a brief 10-minute sync during faculty office hours this week? "
-                f"I would appreciate your guidance on our evaluation metrics and FastMCP benchmark results."
-            )
-        elif variant == "reschedule":
-            msg = (
-                f"Thank you for the notification regarding {clean_sub}.\n\n"
-                f"Due to an overlapping semester examination review, I would like to request permission "
-                f"to present during the afternoon session if permissible."
-            )
-        elif variant == "decline":
-            msg = (
-                f"Thank you for the notification regarding {clean_sub}.\n\n"
-                f"Due to a prior university academic CIE commitment during this exact window, I would like to request "
-                f"permission to present our project deliverables during the subsequent lab review session."
-            )
-        elif tone == "Concise":
-            msg = (
-                f"Thank you for the update regarding {clean_sub}.\n\n"
-                f"I have reviewed the guidelines. Our FastMCP server, automated benchmark evaluation report, "
-                f"and architecture documentation are finalized and ready for the session."
-            )
-        else:  # confirm
-            msg = (
-                f"Thank you for the update regarding {clean_sub}.\n\n"
-                f"I have verified the project deliverables and prepared our FastMCP agent architecture, "
-                f"automated benchmark evaluation report (95% classification accuracy with sub-10ms latency), "
-                f"and documentation for display on the projector.\n\n"
-                f"Please let me know if you would like me to review the slides with you prior to the session."
-            )
-    elif is_recruiter:
-        if variant == "inquire":
-            msg = (
-                f"Thank you for reaching out regarding this opportunity.\n\n"
-                f"Before our call, could you share a bit more detail about the specific projects "
-                f"the AI team is focusing on for the upcoming internship cycle?"
-            )
-        elif variant == "reschedule":
-            msg = (
-                f"Thank you very much for reaching out regarding the engineering opportunity!\n\n"
-                f"I would be glad to interview with the team. While Friday after 4 PM has an academic overlap, "
-                f"I am fully available Monday or Tuesday between 3:00 PM and 6:00 PM IST. Please let me know if that works."
-            )
-        elif variant == "decline":
-            msg = (
-                f"Thank you very much for reaching out with this exciting opportunity.\n\n"
-                f"Currently, due to my ongoing academic commitments at BMSCE, I will be unable to explore "
-                f"an off-campus role at this moment. However, I would love to stay in touch for summer 2026."
-            )
-        elif tone == "Concise":
-            msg = (
-                f"Thank you for reaching out regarding this opportunity.\n\n"
-                f"I would be glad to interview with the engineering team. I am available this Friday after 4:00 PM IST "
-                f"or anytime over the weekend. Please feel free to send through the calendar invite."
-            )
-        else:  # confirm
-            msg = (
-                f"Thank you very much for reaching out regarding the opportunity with your engineering team!\n\n"
-                f"I would be delighted to speak with you. I am available for a technical discussion "
-                f"this Thursday or Friday between 4:00 PM and 7:00 PM IST, or anytime over the weekend that suits the team.\n\n"
-                f"I look forward to discussing our recent work in FastMCP agent architectures, dense vector retrieval, and model evaluation."
-            )
-    elif intent == "Event/Club":
-        if variant == "inquire":
-            msg = (
-                f"Thanks for coordinating the details for {clean_sub}.\n\n"
-                f"Could you confirm the exact venue arrangements and whether HDMI projector access is available in the hall?"
-            )
-        elif variant == "reschedule":
-            msg = (
-                f"Thanks for inviting me to participate in {clean_sub}!\n\n"
-                f"Due to university CIE exams scheduled on this date, could we explore conducting the workshop session "
-                f"during the subsequent weekend?"
-            )
-        elif variant == "decline":
-            msg = (
-                f"Thanks for inviting me to participate in {clean_sub}.\n\n"
-                f"Unfortunately, due to overlapping university lab exams, I will be unable to attend this edition."
-            )
-        elif tone == "Concise":
-            msg = (
-                f"Thanks for coordinating the details for {clean_sub}.\n\n"
-                f"I confirm my participation and will ensure our hands-on workshop materials are ready before the session."
-            )
-        else:  # confirm
-            msg = (
-                f"Thanks for sharing the details and schedule for {clean_sub}!\n\n"
-                f"I confirm my participation and will ensure our starter Colab notebooks, FastMCP template repository, "
-                f"and presentation setup are verified before the session begins."
-            )
-    else:  # Action Required
-        if variant == "inquire":
-            msg = (
-                f"Received your alert regarding {clean_sub}.\n\n"
-                f"I am looking into this right now. Could you share the latest service logs so I can diagnose the issue quickly?"
-            )
-        elif variant == "reschedule":
-            msg = (
-                f"Received your notification regarding {clean_sub}.\n\n"
-                f"I am actively investigating the node configuration and will provide a status verification report by 4:00 PM."
-            )
-        elif variant == "decline":
-            msg = (
-                f"Received your notification regarding {clean_sub}.\n\n"
-                f"I have reviewed the requisition and verified that this does not impact our primary inference pipeline."
-            )
-        elif tone == "Concise":
-            msg = (
-                f"Received your update regarding {clean_sub}.\n\n"
-                f"I have verified the configuration and resolved the pending items."
-            )
-        else:  # confirm
-            msg = (
-                f"Received your notification regarding {clean_sub}.\n\n"
-                f"I have checked the system configuration and initiated the required steps to complete this action promptly."
-            )
-
-    # Injected Checked Action Items
-    if checked_action_items:
-        bullet_items = "\n".join([f"• Confirmed: {item}" for item in checked_action_items])
-        msg += f"\n\nDeliverables & Verification Status:\n{bullet_items}"
-
-    # Seamless custom prompt steering
-    if custom_instruction and custom_instruction.strip():
-        clean_note = custom_instruction.strip()
-        if not clean_note.endswith('.'):
-            clean_note += '.'
-        msg += f"\n\nAdditionally, {clean_note}"
-
-    full_draft = f"{salutation}\n\n{msg}\n\n{signature}"
     return {
-        "reply": full_draft,
+        "reply": reply_text,
         "auto_reply_recommended": not is_promo,
         "reason": f"Classified as {intent} with {tone.lower()} tone under {variant} strategy.",
         "suggested_action": "Archive / Skip Reply" if is_promo else "Review & Save to Gmail Drafts",
         "suggestion_chips": get_suggestion_chips(intent),
     }
-    return {
-        "reply": full_draft,
-        "auto_reply_recommended": not is_promo,
-        "reason": f"Classified as {intent} with {tone.lower()} tone.",
-        "suggested_action": "Archive / Skip Reply" if is_promo else "Review & Save to Gmail Drafts",
-        "suggestion_chips": get_suggestion_chips(intent),
-    }
+
+
+# -----------------------------------------------------------------------------
+# Foundation Model Engine Status
+# -----------------------------------------------------------------------------
+@app.get("/api/model/status")
+def get_model_status():
+    """Returns active foundation model information for UI status pill."""
+    return llm_engine.get_active_model_info()
 
 
 # -----------------------------------------------------------------------------
