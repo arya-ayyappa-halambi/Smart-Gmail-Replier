@@ -407,8 +407,8 @@
                 Copy
               </button>
               <div class="flex items-center bg-slate-100 p-0.5 rounded border border-slate-200 text-[11px] font-semibold ml-1">
-                <button @click="viewMode = 'prose'" class="px-2 py-0.5 rounded transition" :class="viewMode === 'prose' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600'">Prose</button>
-                <button @click="viewMode = 'html'" class="px-2 py-0.5 rounded transition" :class="viewMode === 'html' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600'">HTML</button>
+                <button @click="viewMode = 'html'" class="px-2.5 py-0.5 rounded transition" :class="viewMode === 'html' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600'">HTML</button>
+                <button @click="viewMode = 'prose'" class="px-2.5 py-0.5 rounded transition" :class="viewMode === 'prose' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600'">Prose</button>
               </div>
             </div>
           </div>
@@ -500,7 +500,7 @@
           </div>
 
           <!-- Rich HTML View -->
-          <div x-show="viewMode === 'html'" class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs h-[500px]">
+          <div x-show="viewMode === 'html'" class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs min-h-[580px] h-[650px]">
             <template x-if="selectedEmail && selectedEmail.html">
               <iframe :srcdoc="selectedEmail.html" sandbox="allow-same-origin" class="w-full h-full border-0"></iframe>
             </template>
@@ -673,7 +673,11 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold">
+            <button @click="viewMode = 'html'" class="px-3 py-1 rounded-md transition" :class="viewMode === 'html' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">HTML</button>
+            <button @click="viewMode = 'prose'" class="px-3 py-1 rounded-md transition" :class="viewMode === 'prose' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Prose</button>
+          </div>
           <button @click="saveDraft()" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-xs hover:bg-blue-700">
             Save Draft to Gmail
           </button>
@@ -694,10 +698,20 @@
           </div>
         </div>
 
-        <!-- Full Email Text in Apple Mail Typography -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-xs">
+        <!-- Clean Prose View in Focus Mode -->
+        <div x-show="viewMode === 'prose'" class="bg-white border border-slate-200 rounded-2xl p-8 shadow-xs">
           <div class="text-[15px] leading-relaxed text-slate-800 whitespace-pre-wrap font-sans selection:bg-blue-100"
                x-text="selectedEmail ? selectedEmail.body : ''"></div>
+        </div>
+
+        <!-- Rich HTML View in Focus Mode -->
+        <div x-show="viewMode === 'html'" class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs min-h-[580px]">
+          <template x-if="selectedEmail && selectedEmail.html">
+            <iframe :srcdoc="selectedEmail.html" sandbox="allow-same-origin" class="w-full h-[620px] border-0"></iframe>
+          </template>
+          <template x-if="!selectedEmail || !selectedEmail.html">
+            <div class="p-12 text-center text-slate-400 text-xs">No HTML payload available for this email.</div>
+          </template>
         </div>
 
         <!-- Draft Drawer in Focus Mode -->
@@ -822,7 +836,7 @@
         customGuidance: '',
         checkedActionItems: [],
         currentDraftText: '',
-        viewMode: 'prose',
+        viewMode: 'html',
         starredIds: [],
         showBenchModal: false,
         showSandboxModal: false,
@@ -1041,7 +1055,7 @@
           this.customGuidance = '';
           this.checkedActionItems = [];
           this.currentDraftText = em.suggested_draft || '';
-          this.viewMode = 'prose';
+          this.viewMode = (em.html && em.html.trim().length > 0) ? 'html' : 'prose';
           this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
         },
 
