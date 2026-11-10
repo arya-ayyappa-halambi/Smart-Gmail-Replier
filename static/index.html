@@ -404,66 +404,75 @@
       <!-- Active Email View -->
       <div x-show="selectedEmail" class="flex-1 flex flex-col h-full overflow-hidden">
         
-        <!-- Header Toolbar -->
-        <div class="px-6 py-4 border-b border-slate-200 bg-white/95 backdrop-blur-md flex-shrink-0 z-10">
-          <div class="flex items-start justify-between gap-4 mb-2.5">
-            <div class="flex-1 min-w-0">
-              <h2 class="text-lg font-bold text-slate-900 leading-snug tracking-tight truncate" x-text="selectedEmail ? selectedEmail.subject : ''"></h2>
-              
-              <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-600">
-                <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px] shadow-xs" 
-                     x-text="selectedEmail && selectedEmail.sender_clean ? selectedEmail.sender_clean.substring(0, 2).toUpperCase() : 'EM'"></div>
-                <div class="truncate">
-                  <span class="font-bold text-slate-900" x-text="selectedEmail ? selectedEmail.sender_clean : ''"></span>
-                  <span class="font-mono text-[11px] text-slate-400 ml-1" x-text="selectedEmail ? `<${selectedEmail.sender}>` : ''"></span>
-                </div>
+        <!-- Header Toolbar (Crisp, Compact, Never Overflows) -->
+        <div class="px-6 py-3 border-b border-slate-200 bg-white/95 backdrop-blur-md flex-shrink-0 z-10 space-y-2">
+          
+          <!-- Row 1: Subject + Action Buttons -->
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="text-base font-extrabold text-slate-900 tracking-tight truncate flex-1 min-w-0" 
+                x-text="selectedEmail ? selectedEmail.subject : ''"></h2>
 
-                <!-- Domain Verified Badge -->
-                <template x-if="selectedEmail && selectedEmail.insights && selectedEmail.insights.domain_verified">
-                  <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
-                    <span>✓</span> Verified Domain
-                  </span>
-                </template>
-
-                <!-- Reading Time -->
-                <span class="text-[10px] text-slate-400 font-mono" x-text="selectedEmail && selectedEmail.insights ? `⏱ ${selectedEmail.insights.reading_time}` : ''"></span>
-
-                <span class="text-slate-400 ml-auto font-mono text-[11px]" x-text="selectedEmail ? selectedEmail.date : ''"></span>
-              </div>
-            </div>
-
-            <!-- Toolbar Controls -->
             <div class="flex items-center gap-1.5 flex-shrink-0">
-              <!-- Intent & Sub-Topic Badge -->
-              <div class="hidden sm:flex items-center gap-1.5 mr-1">
-                <span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-2xs"
-                      :class="selectedEmail && selectedEmail.analysis ? getIntentBadgeClass(selectedEmail.analysis.intent) : ''"
-                      x-text="selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.intent : ''"></span>
-                <template x-if="selectedEmail && selectedEmail.sub_topic">
-                  <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                    <span x-text="`${selectedEmail.sub_topic} • ${selectedEmail.incoming_tone || 'Professional'}`"></span>
-                  </span>
-                </template>
-                <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-600"
-                      x-text="selectedEmail && selectedEmail.analysis ? `${Math.round(selectedEmail.analysis.intent_confidence*100)}%` : ''"></span>
-              </div>
-
-              <button @click="selectedEmail && toggleStar(selectedEmail.id)" title="Star (S)" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold hover:bg-slate-50 transition" :class="selectedEmail && isStarred(selectedEmail.id) ? 'text-amber-500 bg-amber-50 border-amber-200' : 'text-slate-600'">
+              <button @click="selectedEmail && toggleStar(selectedEmail.id)" title="Star (S)" 
+                      class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold hover:bg-slate-50 transition" 
+                      :class="selectedEmail && isStarred(selectedEmail.id) ? 'text-amber-500 bg-amber-50 border-amber-200' : 'text-slate-600'">
                 ★ Star
               </button>
-              <button @click="showFocusModal = true" title="Full Screen (F)" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1">
+              <button @click="showFocusModal = true" title="Full Screen (F)" 
+                      class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1">
                 <span>⛶ Focus</span>
               </button>
-              <button @click="copyBodyText()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+              <button @click="copyBodyText()" 
+                      class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
                 Copy
               </button>
-              <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold ml-1">
-                <button @click="viewMode = 'html'" class="px-2.5 py-1 rounded-md transition" :class="viewMode === 'html' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">HTML</button>
-                <button @click="viewMode = 'prose'" class="px-2.5 py-1 rounded-md transition" :class="viewMode === 'prose' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Prose</button>
+              <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold ml-0.5">
+                <button @click="viewMode = 'html'" class="px-2.5 py-1 rounded-md transition" 
+                        :class="viewMode === 'html' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">HTML</button>
+                <button @click="viewMode = 'prose'" class="px-2.5 py-1 rounded-md transition" 
+                        :class="viewMode === 'prose' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Prose</button>
               </div>
             </div>
           </div>
+
+          <!-- Row 2: Metadata (Sender, Domain, Date) + Topic Badges -->
+          <div class="flex items-center justify-between gap-2 text-xs flex-wrap">
+            <!-- Left: Sender Info -->
+            <div class="flex items-center gap-2 min-w-0 truncate">
+              <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px] shadow-xs flex-shrink-0" 
+                   x-text="selectedEmail && selectedEmail.sender_clean ? selectedEmail.sender_clean.substring(0, 2).toUpperCase() : 'EM'"></div>
+              <span class="font-bold text-slate-900 truncate" x-text="selectedEmail ? selectedEmail.sender_clean : ''"></span>
+              <span class="font-mono text-[11px] text-slate-400 truncate hidden md:inline" x-text="selectedEmail ? `<${selectedEmail.sender}>` : ''"></span>
+
+              <template x-if="selectedEmail && selectedEmail.insights && selectedEmail.insights.domain_verified">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1 flex-shrink-0">
+                  <span>✓</span> Verified
+                </span>
+              </template>
+
+              <span class="text-[10px] text-slate-400 font-mono flex-shrink-0 hidden sm:inline" 
+                    x-text="selectedEmail && selectedEmail.insights ? `⏱ ${selectedEmail.insights.reading_time}` : ''"></span>
+              <span class="text-slate-400 font-mono text-[11px] flex-shrink-0" x-text="selectedEmail ? selectedEmail.date : ''"></span>
+            </div>
+
+            <!-- Right: Sub-Topic & Intent Pills -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold shadow-2xs"
+                    :class="selectedEmail && selectedEmail.analysis ? getIntentBadgeClass(selectedEmail.analysis.intent) : ''"
+                    x-text="selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.intent : ''"></span>
+
+              <template x-if="selectedEmail && selectedEmail.sub_topic">
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs flex items-center gap-1 max-w-[240px] truncate">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+                  <span class="truncate" x-text="selectedEmail.sub_topic"></span>
+                </span>
+              </template>
+
+              <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-600"
+                    x-text="selectedEmail && selectedEmail.analysis ? `${Math.round(selectedEmail.analysis.intent_confidence*100)}%` : ''"></span>
+            </div>
+          </div>
+
         </div>
 
         <!-- Scrollable Workstation Canvas -->
