@@ -97,6 +97,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Clarify Challan Submission", "desc": "Ask if physical submission is required at accounts"},
             {"id": "reschedule", "label": "Request 3-Day Extension", "desc": "Politely request grace period for bank transfer"},
             {"id": "decline", "label": "Prior Payment Proof", "desc": "Attach existing receipt showing dues cleared"}
+        ],
+        "quick_starters": [
+            {"label": "Paid - Share UTR", "text": "Confirm that the fee has already been paid and share the transaction UTR reference for verification.", "icon": "check"},
+            {"label": "3-Day Grace Period", "text": "Request a 3-day grace period to complete the bank RTGS transfer and clear dues.", "icon": "calendar"},
+            {"label": "Accounts Slip Clarification", "text": "Inquire whether the physical stamped challan must be submitted at the accounts department counter.", "icon": "file-text"},
+            {"label": "Attach Prior Receipt", "text": "Inform that the dues were previously cleared and attach the counterfoil receipt copy.", "icon": "paperclip"}
         ]
     },
     "academic_review": {
@@ -106,6 +112,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Clarify Rubrics & Weights", "desc": "Ask if prototype or doc has higher weight"},
             {"id": "reschedule", "label": "Request Afternoon Session", "desc": "Request alternate slot due to morning CIE clash"},
             {"id": "decline", "label": "Academic Deferral Note", "desc": "Polite request to schedule in makeup lab"}
+        ],
+        "quick_starters": [
+            {"label": "Confirm Demo & Repo", "text": "Confirm that the project codebase, live demo, and report are prepared for the scheduled review.", "icon": "check"},
+            {"label": "Clarify Rubric Weights", "text": "Ask for clarification regarding the evaluation rubric and weighting between the demo and documentation.", "icon": "help-circle"},
+            {"label": "Request Slot after 3 PM", "text": "Request rescheduling the review presentation to an afternoon slot after 3:00 PM due to a morning lab conflict.", "icon": "clock"},
+            {"label": "Share Presentation Deck", "text": "Share the architecture diagram slide deck and GitHub commit timeline ahead of the evaluation.", "icon": "link"}
         ]
     },
     "academic_exam": {
@@ -115,6 +127,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Clarify Syllabus & Units", "desc": "Inquire whether Unit 5 or lab concepts are included"},
             {"id": "reschedule", "label": "Report Exam Clash", "desc": "Flag overlapping elective or lab evaluation clash"},
             {"id": "decline", "label": "Medical / Absence Notice", "desc": "Submit formal intimation regarding unavoidable absence"}
+        ],
+        "quick_starters": [
+            {"label": "Confirm Exam Timetable", "text": "Acknowledge the CIE examination schedule and confirm attendance for the assigned room.", "icon": "check"},
+            {"label": "Inquire Unit Syllabus", "text": "Inquire whether Unit 5 topics or lab component implementations are included in the upcoming CIE.", "icon": "help-circle"},
+            {"label": "Report Timetable Clash", "text": "Report an overlapping schedule clash between this examination and the departmental lab test.", "icon": "alert-circle"},
+            {"label": "Request Makeup Test Info", "text": "Inquire about the procedure and documentation needed for a makeup evaluation slot.", "icon": "calendar"}
         ]
     },
     "academic_classroom": {
@@ -124,6 +142,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Ask Concept / Syntax Query", "desc": "Ask clarifying question on problem statement"},
             {"id": "reschedule", "label": "Request Submission Grace", "desc": "Ask for 24-hr extension to refine test suites"},
             {"id": "decline", "label": "Doubts in Office Hours", "desc": "Request brief discussion during office hours"}
+        ],
+        "quick_starters": [
+            {"label": "Confirm Notes Received", "text": "Confirm that the lecture notes, tutorial problems, and lab exercises have been received.", "icon": "check"},
+            {"label": "Problem Constraint Query", "text": "Ask a clarifying question on the problem constraints and boundary conditions in Question 3.", "icon": "help-circle"},
+            {"label": "Request 24h Submission Grace", "text": "Request a 24-hour extension on the assignment deadline to finalize unit tests and formatting.", "icon": "clock"},
+            {"label": "Faculty Office Hours Slot", "text": "Request a short meeting during faculty consulting hours to review specific questions on the module.", "icon": "calendar"}
         ]
     },
     "academic_admin": {
@@ -133,6 +157,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Request Policy Clarification", "desc": "Inquire regarding eligibility criteria and forms"},
             {"id": "reschedule", "label": "Request Appointment Slot", "desc": "Request meeting with department coordinator"},
             {"id": "decline", "label": "Formal Representation", "desc": "Submit formal request regarding attendance or exemptions"}
+        ],
+        "quick_starters": [
+            {"label": "Acknowledge Circular", "text": "Confirm that the administrative circular and instructions have been reviewed and noted.", "icon": "check"},
+            {"label": "Eligibility & Form Query", "text": "Inquire regarding eligibility criteria and the submission deadline for the student application form.", "icon": "help-circle"},
+            {"label": "Request Coordinator Slot", "text": "Request a brief appointment with the academic coordinator to discuss course registration.", "icon": "calendar"},
+            {"label": "Attendance Representation", "text": "Submit a formal representation regarding attendance consideration during technical hackathons.", "icon": "file-text"}
         ]
     },
     "dev_pull_request": {
@@ -142,6 +172,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Request Specific Examples", "desc": "Ask for clarification on requested architecture changes"},
             {"id": "reschedule", "label": "Track in Separate Issue", "desc": "Propose merging current PR and tracking remainder"},
             {"id": "decline", "label": "Clarify Design Rationale", "desc": "Explain why current architectural pattern was chosen"}
+        ],
+        "quick_starters": [
+            {"label": "Pushed Fixes & Re-test", "text": "I have addressed the requested review feedback and pushed updated commits to the branch for re-test.", "icon": "check"},
+            {"label": "Request Error Trace", "text": "Ask the reviewer to provide a specific stack trace or code snippet for the failing edge case.", "icon": "terminal"},
+            {"label": "Track in Separate Issue", "text": "Propose merging the primary architecture refactor now and tracking remaining enhancements in a separate issue.", "icon": "link"},
+            {"label": "10-Min Quick Huddle", "text": "Could we hop on a quick 10-minute huddle on Google Meet to align on the interface contract?", "icon": "clock"}
         ]
     },
     "dev_alert": {
@@ -151,6 +187,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Request Stack & Telemetry", "desc": "Ask for distributed traces and Prometheus metrics"},
             {"id": "reschedule", "label": "Active Triage / Monitoring", "desc": "Currently investigating logs; update in 30 mins"},
             {"id": "decline", "label": "Flag False Positive / Staging", "desc": "Verified non-impacting dev/staging telemetry"}
+        ],
+        "quick_starters": [
+            {"label": "Diagnosed & Hotfix Tonight", "text": "Alert acknowledged; root cause diagnosed and hotfix will be deployed to staging tonight.", "icon": "check"},
+            {"label": "Request Runner Telemetry", "text": "Please provide the latest runner execution logs and service telemetry to aid diagnosis.", "icon": "terminal"},
+            {"label": "Active Triage Status", "text": "Currently investigating memory profiles and thread dumps; will share status within 30 minutes.", "icon": "clock"},
+            {"label": "Flag Staging Non-Impacting", "text": "Confirmed this is a non-impacting transient spike on the staging environment; baseline metrics normal.", "icon": "shield"}
         ]
     },
     "dev_collaboration": {
@@ -160,6 +202,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Ask Architectural Trade-offs", "desc": "Compare latency vs memory footprint considerations"},
             {"id": "reschedule", "label": "Suggest 15-Min Quick Sync", "desc": "Propose quick huddle on Google Meet to align"},
             {"id": "decline", "label": "Propose Alternative Design", "desc": "Recommend lightweight approach with fewer dependencies"}
+        ],
+        "quick_starters": [
+            {"label": "Agree with RFC & Start Code", "text": "Reviewed the technical proposal and agree with the approach; will start drafting the implementation.", "icon": "check"},
+            {"label": "Inquire Latency Trade-offs", "text": "Ask about the memory overhead and latency trade-offs between the proposed caching strategies.", "icon": "help-circle"},
+            {"label": "Propose Alternative Design", "text": "Suggest exploring a lightweight pipeline approach to reduce external dependencies.", "icon": "file-text"},
+            {"label": "15-Min Alignment Sync", "text": "Propose a 15-minute quick sync this afternoon to finalize the API schema.", "icon": "clock"}
         ]
     },
     "career_interview": {
@@ -169,6 +217,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Inquire Tech Format & Prep", "desc": "Ask about coding environment, DSA, or system design"},
             {"id": "reschedule", "label": "Propose Alternate Window", "desc": "Suggest alternate afternoon slot due to college CIEs"},
             {"id": "decline", "label": "Respectfully Decline Slot", "desc": "Decline current round; request considering future roles"}
+        ],
+        "quick_starters": [
+            {"label": "Accept Slot & Request Link", "text": "Confirm attendance for the scheduled interview and request the Google Meet or Zoom link.", "icon": "check"},
+            {"label": "After 5 PM (College CIE)", "text": "Request rescheduling the interview after 5:00 PM due to ongoing college examinations at BMSCE.", "icon": "clock"},
+            {"label": "Inquire Assessment Format", "text": "Inquire whether the technical interview will focus on live coding, system design, or domain questions.", "icon": "help-circle"},
+            {"label": "Politely Defer Slot", "text": "Politely request rescheduling to next week due to internal college examination commitments.", "icon": "calendar"}
         ]
     },
     "career_offer": {
@@ -178,6 +232,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Inquire Onboarding Details", "desc": "Ask about start date flexibility, laptop setup, paperwork"},
             {"id": "reschedule", "label": "Request Consideration Window", "desc": "Request 3 days to review offer terms with mentors"},
             {"id": "decline", "label": "Respectfully Decline Offer", "desc": "Polite decline citing existing academic commitments"}
+        ],
+        "quick_starters": [
+            {"label": "Enthusiastically Accept", "text": "Enthusiastically confirm acceptance of the offer and ask for onboarding instructions.", "icon": "check"},
+            {"label": "Start Date Flexibility", "text": "Inquire about start date flexibility to align with final semester exam completion dates.", "icon": "calendar"},
+            {"label": "Request 3 Days to Review", "text": "Request 3 business days to review the offer terms and documentation with academic mentors.", "icon": "clock"},
+            {"label": "Laptop & Remote Setup", "text": "Ask about workstation equipment distribution and remote onboarding requirements.", "icon": "help-circle"}
         ]
     },
     "career_inquiry": {
@@ -187,6 +247,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Ask Role Scope & Projects", "desc": "Inquire about team missions, core stack, responsibilities"},
             {"id": "reschedule", "label": "Connect Later this Semester", "desc": "Express interest for upcoming summer internship cycle"},
             {"id": "decline", "label": "Not Looking Currently", "desc": "Polite acknowledgment, connect on LinkedIn for future"}
+        ],
+        "quick_starters": [
+            {"label": "Share Resume & GitHub", "text": "Express strong interest in the opportunity and share updated resume highlights and GitHub repository links.", "icon": "link"},
+            {"label": "Inquire Tech Stack & Team", "text": "Inquire about the core engineering tech stack and the team projects planned for interns.", "icon": "help-circle"},
+            {"label": "Summer Internship Cycle", "text": "Express interest in exploring internships for the upcoming summer break starting July.", "icon": "calendar"},
+            {"label": "Connect on LinkedIn", "text": "Politely acknowledge the message, provide LinkedIn profile, and request staying connected for future roles.", "icon": "check"}
         ]
     },
     "admin_invoice": {
@@ -196,6 +262,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Request Itemized Breakdown", "desc": "Ask for tax invoice or itemized charge verification"},
             {"id": "reschedule", "label": "Dispute Duplicate Charge", "desc": "Flag unexpected charge or duplicate debit for refund"},
             {"id": "decline", "label": "Cancel Subscription / Plan", "desc": "Request immediate cancellation and billing halt"}
+        ],
+        "quick_starters": [
+            {"label": "Confirm & Record Receipt", "text": "Confirm receipt of invoice and confirm that records have been updated for accounting.", "icon": "check"},
+            {"label": "Itemized Tax Invoice", "text": "Request a GST-compliant itemized tax invoice showing breakdown of software licensing charges.", "icon": "file-text"},
+            {"label": "Dispute Unexpected Charge", "text": "Dispute unexpected recurring charge and request immediate verification from billing support.", "icon": "alert-circle"},
+            {"label": "Cancel Subscription Plan", "text": "Request cancellation of the recurring subscription and confirmation of account downgrade.", "icon": "x-circle"}
         ]
     },
     "admin_security": {
@@ -205,6 +277,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Request IP & Device Log", "desc": "Ask for session geolocation and user agent details"},
             {"id": "reschedule", "label": "Revoke Session & Change Pass", "desc": "Report unrecognized activity and initiate password reset"},
             {"id": "decline", "label": "Ignore / Archive Notification", "desc": "Standard automated verification notice"}
+        ],
+        "quick_starters": [
+            {"label": "Confirm Authorized Login", "text": "Confirm that the recent sign-in was authorized and originated from a recognized personal device.", "icon": "check"},
+            {"label": "Request IP & Geolocation", "text": "Request complete IP address, browser user-agent, and geolocation details for the security alert.", "icon": "shield"},
+            {"label": "Report Suspicious Access", "text": "Report unauthorized access attempt, terminate active sessions, and request immediate password reset link.", "icon": "alert-circle"},
+            {"label": "Acknowledge 2FA Update", "text": "Confirm that two-factor authentication credentials and security keys have been successfully updated.", "icon": "check"}
         ]
     },
     "newsletter": {
@@ -214,6 +292,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Update Topic Preferences", "desc": "Request preference center to tune frequency"},
             {"id": "reschedule", "label": "Save to Reading List", "desc": "Archive to technical reference notebook"},
             {"id": "decline", "label": "Unsubscribe & Remove", "desc": "Request removal from marketing distribution list"}
+        ],
+        "quick_starters": [
+            {"label": "Student & Dev Discount", "text": "Inquire whether special student or academic developer discounts are available for this new release.", "icon": "tag"},
+            {"label": "Specs & Benchmarks Sheet", "text": "Request detailed technical specifications and hardware benchmark comparison charts.", "icon": "file-text"},
+            {"label": "Unsubscribe from Marketing", "text": "Please unsubscribe my email address from promotional marketing digests and newsletters.", "icon": "x-circle"},
+            {"label": "Availability in India", "text": "Inquire regarding retail availability and authorized student store launch dates in India.", "icon": "clock"}
         ]
     },
     "general": {
@@ -223,6 +307,12 @@ SUB_TOPIC_CONFIGS = {
             {"id": "inquire", "label": "Request Clarification", "desc": "Ask clarifying questions on specific points"},
             {"id": "reschedule", "label": "Propose Follow-up Time", "desc": "Suggest connecting later in the week"},
             {"id": "decline", "label": "Polite Deferral Note", "desc": "Respectful decline citing current project workload"}
+        ],
+        "quick_starters": [
+            {"label": "Acknowledge & Follow Up", "text": "Thank you for the message; I have reviewed the details and will follow up with the required deliverables shortly.", "icon": "check"},
+            {"label": "Request 10-Min Meet Link", "text": "Could you please share a Google Meet or Zoom link so we can discuss this in a brief 10-minute huddle?", "icon": "link"},
+            {"label": "Ask for More Context", "text": "Could you provide additional background context or documentation regarding this inquiry?", "icon": "help-circle"},
+            {"label": "Available after 5 PM", "text": "I am currently attending college CIE test sessions; I will be available for discussions after 5:00 PM.", "icon": "clock"}
         ]
     }
 }
@@ -274,7 +364,7 @@ def detect_sub_topic_and_tone(subject: str, body: str, sender: str, broad_intent
         sub_topic = "admin_invoice"
     elif _has_keywords(sub_lower, ["verification code", "security alert", "2fa", "otp", "password reset", "unauthorized"]):
         sub_topic = "admin_security"
-    elif any(k in snd for k in ["newsletter", "linkedin", "substack", "medium", "reddit", "insideapple.apple.com", "codepen", "leetcode", "store"]):
+    elif any(k in snd for k in ["newsletter", "linkedin", "substack", "medium", "reddit", "insideapple", "apple.com", "codepen", "leetcode", "pinterest", "grammarly", "store"]):
         sub_topic = "newsletter"
     elif broad_intent == "Academic/Faculty":
         sub_topic = "academic_admin"
@@ -282,6 +372,8 @@ def detect_sub_topic_and_tone(subject: str, body: str, sender: str, broad_intent
         sub_topic = "career_inquiry"
     elif broad_intent == "Action Required":
         sub_topic = "dev_collaboration"
+    elif broad_intent in ["Promotional/Spam", "Bots & Promos", "Newsletters"]:
+        sub_topic = "newsletter"
     else:
         sub_topic = "general"
 
@@ -329,6 +421,28 @@ def generate_dynamic_suggestion_chips(
     return config["chips"]
 
 
+def generate_dynamic_quick_starters(
+    sub_topic: str,
+    subject: str = "",
+    intent: str = ""
+) -> List[Dict[str, str]]:
+    """Returns 4 tailored contextual quick starter prompts specifically aligned with this sub-topic & email context."""
+    config = SUB_TOPIC_CONFIGS.get(sub_topic)
+    if not config:
+        if intent == "Academic/Faculty":
+            config = SUB_TOPIC_CONFIGS["academic_admin"]
+        elif intent == "Internship/Recruiter":
+            config = SUB_TOPIC_CONFIGS["career_inquiry"]
+        elif intent == "Action Required":
+            config = SUB_TOPIC_CONFIGS["dev_collaboration"]
+        elif intent in ["Promotional/Spam", "Bots & Promos"]:
+            config = SUB_TOPIC_CONFIGS["newsletter"]
+        else:
+            config = SUB_TOPIC_CONFIGS["general"]
+
+    return config.get("quick_starters", SUB_TOPIC_CONFIGS["general"]["quick_starters"])
+
+
 # -----------------------------------------------------------------------------
 # UNIFIED SINGLE-PASS FOUNDATION MODEL INFERENCE
 # -----------------------------------------------------------------------------
@@ -359,8 +473,9 @@ def unified_email_reasoning(
     sub_topic_label = meta["sub_topic_label"]
     detected_tone = meta["incoming_tone"]
 
-    # 4 Dynamic suggestion chips tailored specifically to this sub-topic
+    # 4 Dynamic suggestion chips & tailored quick starters for this sub-topic
     chips = generate_dynamic_suggestion_chips(sub_topic, subject, intent)
+    starters = generate_dynamic_quick_starters(sub_topic, subject, intent)
 
     # Resolve active strategy from chosen chip
     active_chip = next((c for c in chips if c["id"] == variant), chips[0])
@@ -392,6 +507,7 @@ def unified_email_reasoning(
             "hybrid": fallback_triple["hybrid"],
             "active_draft": "hybrid" if custom_instruction.strip() else "suggested",
             "suggestion_chips": chips,
+            "quick_starters": starters,
             "sub_topic": sub_topic_label,
             "incoming_tone": detected_tone
         }
@@ -532,6 +648,7 @@ def unified_email_reasoning(
                 "hybrid": hybrid_text,
                 "active_draft": "hybrid" if custom_instruction.strip() else "suggested",
                 "suggestion_chips": chips,
+                "quick_starters": starters,
                 "sub_topic": sub_topic_label,
                 "incoming_tone": detected_tone
             }
@@ -548,6 +665,7 @@ def unified_email_reasoning(
             "hybrid": fallback_triple["hybrid"],
             "active_draft": "hybrid" if custom_instruction.strip() else "suggested",
             "suggestion_chips": chips,
+            "quick_starters": starters,
             "sub_topic": sub_topic_label,
             "incoming_tone": detected_tone
         }

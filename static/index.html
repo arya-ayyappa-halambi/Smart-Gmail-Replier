@@ -667,37 +667,67 @@
             </div>
 
             <!-- Dedicated Custom AI Steering Studio -->
-            <div class="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50 border border-blue-200/80 rounded-2xl p-4 shadow-2xs space-y-3">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
+            <div class="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50 border border-blue-200/80 rounded-2xl p-4 shadow-2xs space-y-3.5">
+              
+              <!-- Studio Header with Integrated Triple-Draft Perspective Switcher -->
+              <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-blue-200/60 pb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
                   </div>
                   <div>
-                    <h4 class="text-xs font-extrabold text-slate-900 tracking-tight">Personalized Prompt Studio</h4>
-                    <p class="text-[11px] text-slate-500">Instruct the model with your custom prompt. MailMind will tailor both Desired and Hybrid replies.</p>
+                    <div class="flex items-center gap-2">
+                      <h4 class="text-xs font-extrabold text-slate-900 tracking-tight">Personalized Prompt Studio</h4>
+                      <span class="text-[10px] font-semibold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full" x-show="customGuidance">
+                        Prompt Active
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Provide custom instructions or pick a quick starter. Switch between autonomous, pure prompt, or hybrid drafts.</p>
                   </div>
                 </div>
-                <span class="text-[10px] font-semibold text-blue-700 bg-blue-100/70 px-2.5 py-0.5 rounded-full" x-show="customGuidance">
-                  Custom Steered
-                </span>
+
+                <!-- 3 Perspective Mode Switcher Tabs (Unified with Prompt Studio) -->
+                <div class="flex items-center bg-white/90 p-1 rounded-xl border border-blue-200/80 shadow-2xs gap-1 flex-shrink-0">
+                  <button @click="switchDraftTab('suggested')" 
+                          class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+                          :class="activeDraftTab === 'suggested' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
+                    <span>Suggested</span>
+                    <span class="text-[10px] font-normal opacity-80 hidden sm:inline">(AI Auto)</span>
+                  </button>
+
+                  <button @click="switchDraftTab('desired')" 
+                          class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+                          :class="activeDraftTab === 'desired' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                    <span>Desired</span>
+                    <span class="text-[10px] font-normal opacity-80 hidden sm:inline">(Prompt)</span>
+                  </button>
+
+                  <button @click="switchDraftTab('hybrid')" 
+                          class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+                          :class="activeDraftTab === 'hybrid' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    <span>Hybrid</span>
+                    <span class="text-[10px] font-normal opacity-80 hidden sm:inline">(Merged)</span>
+                  </button>
+                </div>
               </div>
 
-              <!-- Expansive Text Input with Live Grammarly Debounce -->
+              <!-- Expansive Text Input with Send Prompt Action -->
               <div class="flex flex-col sm:flex-row gap-2">
                 <div class="relative flex-1">
                   <input type="text" x-model="customGuidance" 
-                         placeholder="E.g. Ask the sender to explain the issue properly, or Say that I can join after 5 PM..." 
+                         placeholder="E.g. Inquire about student discount, or Ask to explain the issue properly..." 
                          @keyup.enter="applyCustomGuidance(false)"
-                         @input.debounce.500ms="onLivePromptInput()"
-                         class="w-full bg-white border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 transition shadow-xs focus:outline-none pr-8">
+                         class="w-full bg-white border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 transition shadow-xs focus:outline-none pr-8">
                   <button x-show="customGuidance" @click="customGuidance = ''; regenerateReply()" title="Clear prompt"
                           class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 rounded transition">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                   </button>
                 </div>
                 <button @click="applyCustomGuidance(false)" :disabled="generatingDraft || !customGuidance.trim()"
-                        class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm shadow-blue-500/20 disabled:opacity-50 flex-shrink-0">
+                        class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm shadow-blue-500/20 disabled:opacity-50 flex-shrink-0">
                   <span x-show="!generatingDraft" class="flex items-center gap-1.5">
                     <span>Send Prompt</span>
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -708,91 +738,47 @@
                 </button>
               </div>
 
-              <!-- Quick Prompt Preset Chips -->
+              <!-- Contextual Dynamic Quick Starters (Tailored to this specific email) -->
               <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Quick Starters:</span>
-                <button @click="setPromptPreset('Ask the sender to explain the issue properly and provide error logs.')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
-                  <svg class="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                  <span>Explain Issue & Share Logs</span>
-                </button>
-                <button @click="setPromptPreset('Available only after 5:00 PM due to college CIE examinations; please share meeting credentials.')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
-                  <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                  <span>Available after 5 PM (College CIE)</span>
-                </button>
-                <button @click="setPromptPreset('Could you please share the Zoom or Google Meet link and session agenda?')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
-                  <svg class="w-3.5 h-3.5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                  <span>Request Zoom / Meet Link</span>
-                </button>
-                <button @click="setPromptPreset('Request a 3-day extension to finalize and verify deliverables with project mentors.')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
-                  <svg class="w-3.5 h-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  <span>Request 3-Day Grace Period</span>
-                </button>
-                <button @click="setPromptPreset('Politely decline due to intense academic exam schedule at BMSCE, but stay connected.')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
-                  <svg class="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                  <span>Decline due to Exams</span>
-                </button>
+                <template x-for="(qs, idx) in (selectedEmail && selectedEmail.quick_starters && selectedEmail.quick_starters.length ? selectedEmail.quick_starters : defaultQuickStarters)" :key="idx">
+                  <button @click="setPromptPreset(qs.text)"
+                          class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs group"
+                          :title="qs.text">
+                    <span x-html="renderStarterIcon(qs.icon)"></span>
+                    <span x-text="qs.label"></span>
+                  </button>
+                </template>
               </div>
             </div>
 
-            <!-- Triple-Draft Perspective Switcher Tabs -->
-            <div class="space-y-2 pt-1">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
-                <!-- 3 Draft Tabs -->
-                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1">
-                  <button @click="switchDraftTab('suggested')" 
-                          class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
-                          :class="activeDraftTab === 'suggested' ? 'bg-white text-blue-700 shadow-xs ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'">
-                    <svg class="w-3.5 h-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
-                    <span>Suggested</span>
-                    <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(AI Autonomous)</span>
-                  </button>
-
-                  <button @click="switchDraftTab('desired')" 
-                          class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
-                          :class="activeDraftTab === 'desired' ? 'bg-white text-purple-700 shadow-xs ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'">
-                    <svg class="w-3.5 h-3.5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
-                    <span>Desired</span>
-                    <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(Your Prompt)</span>
-                  </button>
-
-                  <button @click="switchDraftTab('hybrid')" 
-                          class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
-                          :class="activeDraftTab === 'hybrid' ? 'bg-white text-emerald-700 shadow-xs ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'">
-                    <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                    <span>Hybrid</span>
-                    <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(Suggested + Desired)</span>
-                  </button>
-                </div>
-
-                <!-- Tone Selector & Reset -->
-                <div class="flex items-center gap-3">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-xs font-bold text-slate-500">Tone:</span>
-                    <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold">
-                      <button @click="changeTone('Professional')" class="px-2 py-0.5 rounded-md transition"
-                              :class="activeTone === 'Professional' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Prof</button>
-                      <button @click="changeTone('Concise')" class="px-2 py-0.5 rounded-md transition"
-                              :class="activeTone === 'Concise' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Concise</button>
-                      <button @click="changeTone('Friendly')" class="px-2 py-0.5 rounded-md transition"
-                              :class="activeTone === 'Friendly' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Friendly</button>
-                    </div>
-                  </div>
-                  <button @click="changeTone(activeTone)" class="text-blue-600 text-xs font-bold hover:underline">Reset Draft</button>
-                </div>
+            <!-- Draft Perspective Status Bar + Tone Controls -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5 pt-1">
+              <!-- Left: Perspective Explanation Banner -->
+              <div class="flex items-center gap-2 text-xs">
+                <span class="font-bold text-slate-700">Perspective:</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold"
+                      :class="activeDraftTab === 'suggested' ? 'bg-blue-50 text-blue-700 border border-blue-200' : (activeDraftTab === 'desired' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200')"
+                      x-text="activeDraftTab === 'suggested' ? 'Suggested (AI Autonomous)' : (activeDraftTab === 'desired' ? 'Desired (Your Prompt)' : 'Hybrid (Suggested + Desired)')">
+                </span>
+                <span class="text-[11px] text-slate-400 hidden sm:inline"
+                      x-text="activeDraftTab === 'suggested' ? '• Autonomous reply based on active persona' : (activeDraftTab === 'desired' ? '• Strict translation of your prompt' : '• Merged context + prompt')"></span>
               </div>
 
-              <!-- Active Perspective Info Callout -->
-              <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
-                <div class="flex items-center gap-2">
-                  <span x-show="activeDraftTab === 'suggested'">Showing <b>Suggested Draft</b>: Context-aware response based on active persona.</span>
-                  <span x-show="activeDraftTab === 'desired'">Showing <b>Desired Draft</b>: Formatted strictly according to your prompt instructions.</span>
-                  <span x-show="activeDraftTab === 'hybrid'">Showing <b>Hybrid Draft</b>: Synthesized combination of email context and your prompt requirements.</span>
+              <!-- Right: Tone Selector & Reset -->
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-bold text-slate-500">Tone:</span>
+                  <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold">
+                    <button @click="changeTone('Professional')" class="px-2 py-0.5 rounded-md transition"
+                            :class="activeTone === 'Professional' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Prof</button>
+                    <button @click="changeTone('Concise')" class="px-2 py-0.5 rounded-md transition"
+                            :class="activeTone === 'Concise' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Concise</button>
+                    <button @click="changeTone('Friendly')" class="px-2 py-0.5 rounded-md transition"
+                            :class="activeTone === 'Friendly' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Friendly</button>
+                  </div>
                 </div>
+                <button @click="changeTone(activeTone)" class="text-blue-600 text-xs font-bold hover:underline">Reset Draft</button>
                 <span class="text-slate-400 font-mono text-[10px]" x-text="`${currentDraftText.length} chars`"></span>
               </div>
             </div>
@@ -1046,6 +1032,31 @@
         sbBody: '',
         sbResult: null,
 
+        defaultQuickStarters: [
+          { label: 'Acknowledge & Follow Up', text: 'Thank you for the message; I have reviewed the details and will follow up with the required deliverables shortly.', icon: 'check' },
+          { label: 'Request 10-Min Meet Link', text: 'Could you please share a Google Meet or Zoom link so we can discuss this in a brief 10-minute huddle?', icon: 'link' },
+          { label: 'Ask for More Context', text: 'Could you provide additional background context or documentation regarding this inquiry?', icon: 'help-circle' },
+          { label: 'Available after 5 PM', text: 'I am currently attending college CIE test sessions; I will be available for discussions after 5:00 PM.', icon: 'clock' }
+        ],
+
+        renderStarterIcon(iconName) {
+          const icons = {
+            'check': '<svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+            'clock': '<svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+            'calendar': '<svg class="w-3.5 h-3.5 text-purple-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+            'link': '<svg class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
+            'terminal': '<svg class="w-3.5 h-3.5 text-blue-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>',
+            'file-text': '<svg class="w-3.5 h-3.5 text-blue-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>',
+            'help-circle': '<svg class="w-3.5 h-3.5 text-sky-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
+            'alert-circle': '<svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+            'tag': '<svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>',
+            'x-circle': '<svg class="w-3.5 h-3.5 text-rose-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
+            'shield': '<svg class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>',
+            'paperclip': '<svg class="w-3.5 h-3.5 text-slate-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>'
+          };
+          return icons[iconName] || icons['check'];
+        },
+
         async init() {
           try {
             const saved = localStorage.getItem('mm_starred');
@@ -1264,7 +1275,8 @@
 
         setPromptPreset(presetText) {
           this.customGuidance = presetText;
-          this.applyCustomGuidance();
+          this.activeDraftTab = 'hybrid';
+          this.applyCustomGuidance(false);
         },
 
         async selectEmail(em) {
@@ -1276,6 +1288,7 @@
           this.customGuidance = '';
           this.checkedActionItems = [];
           this.activeDraftTab = 'suggested';
+          if (em.quick_starters) this.selectedEmail.quick_starters = em.quick_starters;
           this.draftTriple = {
             suggested: em.suggested || em.suggested_draft || '',
             desired: em.desired || em.suggested_draft || '',
@@ -1317,6 +1330,7 @@
               if (this.selectedEmail && this.selectedEmail.id === em.id) {
                 if (data.insights) this.selectedEmail.insights = data.insights;
                 if (data.suggestion_chips) this.selectedEmail.suggestion_chips = data.suggestion_chips;
+                if (data.quick_starters && data.quick_starters.length) this.selectedEmail.quick_starters = data.quick_starters;
                 if (data.sub_topic) this.selectedEmail.sub_topic = data.sub_topic;
                 if (data.incoming_tone) this.selectedEmail.incoming_tone = data.incoming_tone;
                 if (data.suggested || data.reply) {
@@ -1371,6 +1385,9 @@
               desired: data.desired || this.draftTriple.desired || data.reply || '',
               hybrid: data.hybrid || this.draftTriple.hybrid || data.reply || ''
             };
+            if (data.quick_starters && data.quick_starters.length) {
+              this.selectedEmail.quick_starters = data.quick_starters;
+            }
             this.currentDraftText = this.draftTriple[this.activeDraftTab] || data.reply || '';
           } catch(e) {
             console.error(e);
@@ -1429,8 +1446,15 @@
               desired: data.desired || data.reply || '',
               hybrid: data.hybrid || data.reply || ''
             };
-            this.activeDraftTab = 'hybrid';
-            this.currentDraftText = this.draftTriple.hybrid;
+            if (data.quick_starters && data.quick_starters.length) {
+              this.selectedEmail.quick_starters = data.quick_starters;
+            }
+            if (this.activeDraftTab === 'desired') {
+              this.currentDraftText = this.draftTriple.desired;
+            } else {
+              this.activeDraftTab = 'hybrid';
+              this.currentDraftText = this.draftTriple.hybrid;
+            }
             if (!silent) {
               this.showToast('Polished drafts ready!');
             }

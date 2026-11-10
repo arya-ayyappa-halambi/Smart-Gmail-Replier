@@ -236,6 +236,7 @@ def fast_compose_reply(
     """Instant heuristic draft for initial list sync (<0.05ms per email)."""
     meta = llm_engine.detect_sub_topic_and_tone(subject, body, sender, intent)
     chips = llm_engine.generate_dynamic_suggestion_chips(meta["sub_topic"], subject, intent)
+    starters = llm_engine.generate_dynamic_quick_starters(meta["sub_topic"], subject, intent)
     active_chip = next((c for c in chips if c["id"] == variant), chips[0])
     is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
     triple = llm_engine._generate_triple_heuristic_drafts(
@@ -261,6 +262,7 @@ def fast_compose_reply(
         "reason": f"Topic '{meta['sub_topic_label']}' ({meta['incoming_tone']}) under {active_chip['label']} strategy.",
         "suggested_action": "Archive / Skip Reply" if is_promo else "Review & Save to Gmail Drafts",
         "suggestion_chips": chips,
+        "quick_starters": starters,
         "sub_topic": meta["sub_topic_label"],
         "incoming_tone": meta["incoming_tone"]
     }
@@ -306,6 +308,7 @@ def compose_smart_reply(
     )
 
     primary_reply = res.get("reply") or res.get("suggested") or ""
+    starters = res.get("quick_starters") or llm_engine.generate_dynamic_quick_starters(meta["sub_topic"], subject, intent)
 
     return {
         "reply": primary_reply,
@@ -317,6 +320,7 @@ def compose_smart_reply(
         "reason": f"Topic '{meta['sub_topic_label']}' ({meta['incoming_tone']}) under {active_chip['label']} strategy.",
         "suggested_action": "Archive / Skip Reply" if is_promo else "Review & Save to Gmail Drafts",
         "suggestion_chips": chips,
+        "quick_starters": starters,
         "sub_topic": meta["sub_topic_label"],
         "incoming_tone": meta["incoming_tone"],
     }
@@ -515,6 +519,7 @@ def get_emails(
             "hybrid": reply_meta.get("hybrid", reply_meta["reply"]),
             "active_draft": reply_meta.get("active_draft", "suggested"),
             "suggestion_chips": reply_meta.get("suggestion_chips", []),
+            "quick_starters": reply_meta.get("quick_starters", []),
             "sub_topic": reply_meta.get("sub_topic", "General"),
             "incoming_tone": reply_meta.get("incoming_tone", "Professional"),
         })
@@ -576,6 +581,7 @@ def deep_analyze_email(req: GenerateReplyRequest):
         "active_draft": result.get("active_draft") or ("hybrid" if custom_instruction.strip() else "suggested"),
         "auto_reply_recommended": not is_promo,
         "suggestion_chips": result["suggestion_chips"],
+        "quick_starters": result.get("quick_starters", []),
         "sub_topic": result.get("sub_topic", "General"),
         "incoming_tone": result.get("incoming_tone", "Professional"),
     }
