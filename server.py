@@ -527,7 +527,7 @@ def get_emails(
 def deep_analyze_email(req: GenerateReplyRequest):
     """
     On-demand background LLM inference for the currently viewed email.
-    Invokes qwen2.5-coder:7b to extract deep comprehension & custom persona reply.
+    Invokes qwen2.5-coder:7b in a single unified pass to extract deep comprehension & custom persona reply.
     """
     intent = req.intent or "Action Required"
     tone = req.tone or "Professional"
@@ -535,8 +535,7 @@ def deep_analyze_email(req: GenerateReplyRequest):
     custom_instruction = req.custom_instruction or ""
     checked = req.checked_action_items or []
 
-    insights = llm_engine.analyze_email_with_llm(req.subject, req.sender, req.body, intent)
-    reply_text = llm_engine.generate_persona_reply_with_llm(
+    result = llm_engine.unified_email_reasoning(
         sender=req.sender,
         subject=req.subject,
         body=req.body,
@@ -549,8 +548,8 @@ def deep_analyze_email(req: GenerateReplyRequest):
 
     is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
     return {
-        "insights": insights,
-        "reply": reply_text,
+        "insights": result["insights"],
+        "reply": result["reply"],
         "auto_reply_recommended": not is_promo,
         "suggestion_chips": get_suggestion_chips(intent),
     }

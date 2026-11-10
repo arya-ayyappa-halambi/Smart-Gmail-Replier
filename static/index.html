@@ -866,6 +866,7 @@
         loadingMore: false,
         generatingDraft: false,
         deepAnalyzing: false,
+        analysisController: null,
         savingDraft: false,
         draftCopied: false,
         showRagDetails: false,
@@ -1111,11 +1112,16 @@
 
         async fetchDeepAnalysis(em) {
           if (!em || em.deepAnalysisLoaded) return;
+          if (this.analysisController) {
+            try { this.analysisController.abort(); } catch(e) {}
+          }
+          this.analysisController = new AbortController();
           this.deepAnalyzing = true;
           try {
             const res = await fetch('/api/email/deep-analysis', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              signal: this.analysisController.signal,
               body: JSON.stringify({
                 sender: em.sender,
                 subject: em.subject,
@@ -1132,15 +1138,22 @@
               if (this.selectedEmail && this.selectedEmail.id === em.id) {
                 if (data.insights) this.selectedEmail.insights = data.insights;
                 if (data.suggestion_chips) this.selectedEmail.suggestion_chips = data.suggestion_chips;
-                if (data.reply) this.currentDraftText = data.reply;
+                if (data.reply) {
+                  this.selectedEmail.suggested_draft = data.reply;
+                  this.currentDraftText = data.reply;
+                }
                 this.selectedEmail.deepAnalysisLoaded = true;
                 em.deepAnalysisLoaded = true;
               }
             }
           } catch (e) {
-            console.warn('Deep analysis deferred fallback:', e);
+            if (e.name !== 'AbortError') {
+              console.warn('Deep analysis deferred fallback:', e);
+            }
           } finally {
-            this.deepAnalyzing = false;
+            if (this.selectedEmail && this.selectedEmail.id === em.id) {
+              this.deepAnalyzing = false;
+            }
             this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
         },
