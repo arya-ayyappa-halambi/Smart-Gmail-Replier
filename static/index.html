@@ -385,85 +385,106 @@
     </section>
 
     <!-- ------------------------------------------------------------------- -->
-    <!-- COLUMN 3: EMAIL READER PANE (Flexible min-w-0) -->
+    <!-- PANE 3: EXECUTIVE READING & AI REPLY WORKSTATION (Expansive) -->
     <!-- ------------------------------------------------------------------- -->
-    <section class="flex-1 min-w-0 border-r border-slate-200 bg-white flex flex-col h-full overflow-hidden">
+    <section class="flex-1 min-w-0 bg-white flex flex-col h-full overflow-hidden">
 
+      <!-- Empty State -->
       <div x-show="!selectedEmail" class="flex-1 flex flex-col items-center justify-center text-slate-400 text-center p-12">
-        <i data-lucide="mail-open" class="w-10 h-10 mb-2 text-slate-300"></i>
-        <h3 class="text-sm font-bold text-slate-700">No Email Selected</h3>
-        <p class="text-xs text-slate-400">Click any message in Column 2 to view content and AI suggestions.</p>
+        <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-300 mb-3 shadow-inner">
+          <i data-lucide="mail-open" class="w-8 h-8 text-slate-400"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-700">No Email Selected</h3>
+        <p class="text-xs text-slate-400 max-w-sm mt-1">Select an email from the inbox list or use <kbd class="px-1.5 py-0.5 rounded bg-slate-100 border text-slate-600 font-mono text-[10px]">J</kbd> / <kbd class="px-1.5 py-0.5 rounded bg-slate-100 border text-slate-600 font-mono text-[10px]">K</kbd> to navigate.</p>
       </div>
 
+      <!-- Active Email View -->
       <div x-show="selectedEmail" class="flex-1 flex flex-col h-full overflow-hidden">
         
         <!-- Header Toolbar -->
-        <div class="p-4 border-b border-slate-200 bg-white flex-shrink-0">
-          <div class="flex items-start justify-between gap-4 mb-2">
-            <h2 class="text-base font-bold text-slate-900 leading-snug" x-text="selectedEmail ? selectedEmail.subject : ''"></h2>
-            
-            <div class="flex items-center gap-1 flex-shrink-0">
-              <button @click="selectedEmail && toggleStar(selectedEmail.id)" title="Star (S)" class="px-2 py-1 rounded border border-slate-200 text-xs" :class="selectedEmail && isStarred(selectedEmail.id) ? 'text-amber-500 bg-amber-50' : 'text-slate-500'">
+        <div class="px-6 py-4 border-b border-slate-200 bg-white/95 backdrop-blur-md flex-shrink-0 z-10">
+          <div class="flex items-start justify-between gap-4 mb-2.5">
+            <div class="flex-1 min-w-0">
+              <h2 class="text-lg font-bold text-slate-900 leading-snug tracking-tight truncate" x-text="selectedEmail ? selectedEmail.subject : ''"></h2>
+              
+              <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-600">
+                <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px] shadow-xs" 
+                     x-text="selectedEmail && selectedEmail.sender_clean ? selectedEmail.sender_clean.substring(0, 2).toUpperCase() : 'EM'"></div>
+                <div class="truncate">
+                  <span class="font-bold text-slate-900" x-text="selectedEmail ? selectedEmail.sender_clean : ''"></span>
+                  <span class="font-mono text-[11px] text-slate-400 ml-1" x-text="selectedEmail ? `<${selectedEmail.sender}>` : ''"></span>
+                </div>
+
+                <!-- Domain Verified Badge -->
+                <template x-if="selectedEmail && selectedEmail.insights && selectedEmail.insights.domain_verified">
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
+                    <span>✓</span> Verified Domain
+                  </span>
+                </template>
+
+                <!-- Reading Time -->
+                <span class="text-[10px] text-slate-400 font-mono" x-text="selectedEmail && selectedEmail.insights ? `⏱ ${selectedEmail.insights.reading_time}` : ''"></span>
+
+                <span class="text-slate-400 ml-auto font-mono text-[11px]" x-text="selectedEmail ? selectedEmail.date : ''"></span>
+              </div>
+            </div>
+
+            <!-- Toolbar Controls -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <!-- Intent & Confidence Tag -->
+              <div class="hidden sm:flex items-center gap-1 mr-1">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-2xs"
+                      :class="selectedEmail && selectedEmail.analysis ? getIntentBadgeClass(selectedEmail.analysis.intent) : ''"
+                      x-text="selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.intent : ''"></span>
+                <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-600"
+                      x-text="selectedEmail && selectedEmail.analysis ? `${Math.round(selectedEmail.analysis.intent_confidence*100)}%` : ''"></span>
+              </div>
+
+              <button @click="selectedEmail && toggleStar(selectedEmail.id)" title="Star (S)" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold hover:bg-slate-50 transition" :class="selectedEmail && isStarred(selectedEmail.id) ? 'text-amber-500 bg-amber-50 border-amber-200' : 'text-slate-600'">
                 ★ Star
               </button>
-              <button @click="showFocusModal = true" title="Full Screen (F)" class="px-2 py-1 rounded border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-1">
+              <button @click="showFocusModal = true" title="Full Screen (F)" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1">
                 <span>⛶ Focus</span>
               </button>
-              <button @click="copyBodyText()" class="px-2 py-1 rounded border border-slate-200 text-xs text-slate-600 hover:bg-slate-50">
+              <button @click="copyBodyText()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
                 Copy
               </button>
-              <div class="flex items-center bg-slate-100 p-0.5 rounded border border-slate-200 text-[11px] font-semibold ml-1">
-                <button @click="viewMode = 'html'" class="px-2.5 py-0.5 rounded transition" :class="viewMode === 'html' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600'">HTML</button>
-                <button @click="viewMode = 'prose'" class="px-2.5 py-0.5 rounded transition" :class="viewMode === 'prose' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600'">Prose</button>
+              <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold ml-1">
+                <button @click="viewMode = 'html'" class="px-2.5 py-1 rounded-md transition" :class="viewMode === 'html' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">HTML</button>
+                <button @click="viewMode = 'prose'" class="px-2.5 py-1 rounded-md transition" :class="viewMode === 'prose' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Prose</button>
               </div>
             </div>
           </div>
-
-          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-            <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs" 
-                 x-text="selectedEmail && selectedEmail.sender_clean ? selectedEmail.sender_clean.substring(0, 2).toUpperCase() : 'EM'"></div>
-            <div class="truncate">
-              <span class="font-bold text-slate-900" x-text="selectedEmail ? selectedEmail.sender_clean : ''"></span>
-              <span class="font-mono text-[11px] text-slate-400" x-text="selectedEmail ? `<${selectedEmail.sender}>` : ''"></span>
-            </div>
-
-            <!-- Domain Verified Badge -->
-            <template x-if="selectedEmail && selectedEmail.insights && selectedEmail.insights.domain_verified">
-              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
-                <span>✓</span> Verified Domain
-              </span>
-            </template>
-
-            <!-- Reading Time -->
-            <span class="text-[10px] text-slate-400 font-mono" x-text="selectedEmail && selectedEmail.insights ? `⏱ ${selectedEmail.insights.reading_time}` : ''"></span>
-
-            <span class="text-slate-400 ml-auto font-mono text-[11px]" x-text="selectedEmail ? selectedEmail.date : ''"></span>
-          </div>
         </div>
 
-        <!-- Scrollable Content Area -->
-        <div class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/40">
+        <!-- Scrollable Workstation Canvas -->
+        <div class="flex-1 overflow-y-auto px-8 py-6 space-y-6 bg-slate-50/40">
           
-          <!-- DEEP CONTENT UNDERSTANDING CARDS -->
-          <div x-show="selectedEmail && selectedEmail.insights" class="space-y-3">
+          <!-- 1. DEEP EXECUTIVE INTELLIGENCE CARDS -->
+          <div x-show="selectedEmail && selectedEmail.insights" class="space-y-4">
             
-            <!-- In Simple Words & What They Are Expecting -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- In Simple Words -->
-              <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-3.5 space-y-1">
-                <div class="flex items-center gap-1.5 text-blue-800 text-[11px] font-extrabold uppercase tracking-wide">
-                  <i data-lucide="info" class="w-3.5 h-3.5 text-blue-600"></i>
-                  <span>In Simple Words</span>
+              <div class="bg-gradient-to-br from-blue-50/80 to-indigo-50/40 border border-blue-200/80 rounded-2xl p-4 shadow-2xs space-y-1.5">
+                <div class="flex items-center justify-between text-blue-800 text-xs font-extrabold uppercase tracking-wide">
+                  <div class="flex items-center gap-1.5">
+                    <i data-lucide="info" class="w-4 h-4 text-blue-600"></i>
+                    <span>In Simple Words</span>
+                  </div>
+                  <span x-show="deepAnalyzing" class="text-[10px] font-mono text-blue-600 animate-pulse font-normal">Qwen reasoning...</span>
                 </div>
                 <p class="text-xs text-slate-700 leading-relaxed font-medium" 
                    x-text="selectedEmail && selectedEmail.insights ? selectedEmail.insights.simple_words : ''"></p>
               </div>
 
               <!-- What They Are Expecting -->
-              <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 space-y-1">
-                <div class="flex items-center gap-1.5 text-amber-900 text-[11px] font-extrabold uppercase tracking-wide">
-                  <i data-lucide="target" class="w-3.5 h-3.5 text-amber-600"></i>
-                  <span>What They Expect</span>
+              <div class="bg-gradient-to-br from-amber-50/80 to-orange-50/40 border border-amber-200/80 rounded-2xl p-4 shadow-2xs space-y-1.5">
+                <div class="flex items-center justify-between text-amber-900 text-xs font-extrabold uppercase tracking-wide">
+                  <div class="flex items-center gap-1.5">
+                    <i data-lucide="target" class="w-4 h-4 text-amber-600"></i>
+                    <span>What They Expect</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-amber-700 font-bold" x-text="selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.intent : ''"></span>
                 </div>
                 <p class="text-xs text-amber-950 leading-relaxed font-medium" 
                    x-text="selectedEmail && selectedEmail.insights ? selectedEmail.insights.expectation : ''"></p>
@@ -474,15 +495,18 @@
             <div x-show="selectedEmail && selectedEmail.insights && selectedEmail.insights.action_items && selectedEmail.insights.action_items.length > 0" 
                  class="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-2">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Action Checklist (Select to include in draft):</span>
-                <span class="text-[10px] font-mono text-blue-600 font-semibold" x-text="`${checkedActionItems.length} selected`"></span>
+                <div class="flex items-center gap-2">
+                  <i data-lucide="check-square" class="w-4 h-4 text-blue-600"></i>
+                  <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Action Checklist (Select to steer draft reply):</span>
+                </div>
+                <span class="text-[11px] font-mono text-blue-600 font-semibold" x-text="`${checkedActionItems.length} selected`"></span>
               </div>
-              <div class="space-y-1.5 pt-1">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
                 <template x-for="(item, idx) in (selectedEmail && selectedEmail.insights ? selectedEmail.insights.action_items : [])" :key="idx">
-                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-200 transition">
+                  <label class="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-blue-50/50 cursor-pointer border border-slate-200/70 hover:border-blue-300 transition">
                     <input type="checkbox" :value="item" x-model="checkedActionItems" @change="onActionItemToggled()"
                            class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
-                    <span class="text-xs text-slate-800 leading-tight select-none" x-text="item"></span>
+                    <span class="text-xs text-slate-800 leading-snug select-none" x-text="item"></span>
                   </label>
                 </template>
               </div>
@@ -490,29 +514,168 @@
 
             <!-- Detected Deadlines / Dates -->
             <div x-show="selectedEmail && selectedEmail.insights && selectedEmail.insights.deadlines && selectedEmail.insights.deadlines.length > 0" 
-                 class="flex flex-wrap items-center gap-1.5">
-              <span class="text-[10px] font-bold text-slate-400 uppercase">Key Deadlines:</span>
+                 class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Key Deadlines:</span>
               <template x-for="d in (selectedEmail && selectedEmail.insights ? selectedEmail.insights.deadlines : [])" :key="d">
-                <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-mono font-bold" x-text="d"></span>
+                <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-200 text-xs font-mono font-bold" x-text="d"></span>
               </template>
             </div>
 
           </div>
 
-          <!-- Clean Prose View -->
-          <div x-show="viewMode === 'prose'" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs">
-            <div class="text-[14px] leading-relaxed text-slate-800 whitespace-pre-wrap font-sans selection:bg-blue-100"
-                 x-text="selectedEmail ? selectedEmail.body : ''"></div>
+          <!-- 2. EMAIL CONTENT READER -->
+          <div class="space-y-2">
+            <!-- Clean Prose View -->
+            <div x-show="viewMode === 'prose'" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs">
+              <div class="text-[14px] leading-relaxed text-slate-800 whitespace-pre-wrap font-sans selection:bg-blue-100"
+                   x-text="selectedEmail ? selectedEmail.body : ''"></div>
+            </div>
+
+            <!-- Rich HTML View -->
+            <div x-show="viewMode === 'html'" class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs min-h-[580px] h-[640px]">
+              <template x-if="selectedEmail && selectedEmail.html">
+                <iframe :srcdoc="selectedEmail.html" sandbox="allow-same-origin" class="w-full h-full border-0"></iframe>
+              </template>
+              <template x-if="!selectedEmail || !selectedEmail.html">
+                <div class="p-8 text-center text-slate-400 text-xs">No HTML payload available for this email.</div>
+              </template>
+            </div>
           </div>
 
-          <!-- Rich HTML View -->
-          <div x-show="viewMode === 'html'" class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs min-h-[580px] h-[650px]">
-            <template x-if="selectedEmail && selectedEmail.html">
-              <iframe :srcdoc="selectedEmail.html" sandbox="allow-same-origin" class="w-full h-full border-0"></iframe>
-            </template>
-            <template x-if="!selectedEmail || !selectedEmail.html">
-              <div class="p-8 text-center text-slate-400 text-xs">No HTML payload available for this email.</div>
-            </template>
+          <!-- 3. INTEGRATED EXECUTIVE AI REPLY STUDIO -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
+            
+            <!-- Studio Header -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  AI
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-slate-900">AI Reply Studio</h3>
+                  <p class="text-[11px] text-slate-500">Fine-tuned response generation with custom intent and tone matching</p>
+                </div>
+              </div>
+
+              <!-- Model Badge & Inference Info -->
+              <div class="flex items-center gap-2">
+                <span x-show="deepAnalyzing || generatingDraft" class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold animate-pulse flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
+                  Qwen 2.5 Coder drafting...
+                </span>
+                <span x-show="!deepAnalyzing && !generatingDraft" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-mono font-medium flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span x-text="modelInfo.badge || '⚡ Qwen 2.5 Coder'"></span>
+                </span>
+                <button @click="showRagDetails = !showRagDetails" 
+                        class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-blue-700 hover:bg-slate-50 flex items-center gap-1 transition">
+                  <span>RAG Style</span>
+                  <span x-text="showRagDetails ? '▲' : '▼'"></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Collapsible RAG Context -->
+            <div x-show="showRagDetails" class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">FAISS Embedding Vector References</span>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <template x-for="(r, i) in (selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.rag_context : [])" :key="i">
+                  <div class="bg-white border border-slate-200 rounded-lg p-2.5 text-[11px]">
+                    <div class="flex justify-between font-bold text-slate-800 mb-1">
+                      <span x-text="`#${i+1} ${r.notes}`"></span>
+                      <span class="text-blue-600 font-mono text-[10px]" x-text="`Sim: ${r.similarity.toFixed(3)}`"></span>
+                    </div>
+                    <p class="text-slate-500 italic line-clamp-3 leading-relaxed" x-text="r.content"></p>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- 4 Strategic Persona Cards (Expansive Grid) -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Choose Strategic Reply Persona:</span>
+                <span class="text-xs text-blue-600 font-semibold" x-show="activeChipId">Persona Active</span>
+              </div>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                <template x-for="chip in (selectedEmail ? selectedEmail.suggestion_chips : [])" :key="chip.id">
+                  <button @click="applySuggestionVariant(chip.id)" 
+                          class="text-left p-3 rounded-xl border transition flex flex-col justify-between"
+                          :class="activeChipId === chip.id ? 'border-blue-600 bg-blue-50/80 ring-2 ring-blue-500/20' : 'border-slate-200 hover:border-blue-400 bg-white'">
+                    <div>
+                      <div class="font-bold text-slate-800 text-xs flex items-center justify-between">
+                        <span x-text="chip.label"></span>
+                        <span class="text-blue-600 font-bold" x-show="activeChipId === chip.id">✓</span>
+                        <span class="text-slate-400 text-[10px]" x-show="activeChipId !== chip.id">→</span>
+                      </div>
+                      <p class="text-[11px] text-slate-500 mt-1 leading-snug" x-text="chip.desc"></p>
+                    </div>
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <!-- Tone and Custom Steering Controls -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center pt-1">
+              <!-- Tone Selector -->
+              <div class="lg:col-span-4 flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-500">Tone:</span>
+                <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold">
+                  <button @click="changeTone('Professional')" class="px-2.5 py-1 rounded-md transition"
+                          :class="activeTone === 'Professional' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Prof</button>
+                  <button @click="changeTone('Concise')" class="px-2.5 py-1 rounded-md transition"
+                          :class="activeTone === 'Concise' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Concise</button>
+                  <button @click="changeTone('Friendly')" class="px-2.5 py-1 rounded-md transition"
+                          :class="activeTone === 'Friendly' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Friendly</button>
+                </div>
+              </div>
+
+              <!-- Custom AI Steering Input -->
+              <div class="lg:col-span-8 flex gap-2">
+                <input type="text" x-model="customGuidance" placeholder="Custom instructions (e.g. Schedule call for 4 PM Friday, ask for budget)..." @keyup.enter="applyCustomGuidance()"
+                       class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                <button @click="applyCustomGuidance()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex-shrink-0">
+                  Instruct
+                </button>
+              </div>
+            </div>
+
+            <!-- Editable Draft Textarea -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-800">Response Draft</span>
+                  <span class="text-[11px] text-slate-400">(Editable before saving)</span>
+                </div>
+                <button @click="changeTone(activeTone)" class="text-blue-600 text-xs font-bold hover:underline">Reset Draft</button>
+              </div>
+              <textarea x-model="currentDraftText" :disabled="generatingDraft" rows="9"
+                        class="w-full bg-slate-50/70 border border-slate-300 focus:border-blue-600 focus:bg-white rounded-2xl p-4 text-xs font-mono text-slate-900 leading-relaxed transition focus:outline-none disabled:opacity-60 shadow-inner"></textarea>
+            </div>
+
+            <!-- Action Buttons Footer -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                <span>Saves safely to Gmail <b>Drafts</b> folder. Will never auto-send emails.</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button @click="copyDraftToClipboard()" :disabled="!currentDraftText.trim()" title="Copy (C)"
+                        class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 transition">
+                  <span x-text="draftCopied ? '✓ Copied' : 'Copy (C)'"></span>
+                </button>
+
+                <button @click="saveDraft()" :disabled="savingDraft || !currentDraftText.trim()" title="Save Draft (D)"
+                        class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 flex items-center gap-2 transition disabled:opacity-50">
+                  <i data-lucide="save" class="w-4 h-4" x-show="!savingDraft"></i>
+                  <span x-show="!savingDraft">Save to Gmail Drafts (D)</span>
+                  <span x-show="savingDraft">Saving to Drafts...</span>
+                </button>
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -520,146 +683,6 @@
       </div>
 
     </section>
-
-    <!-- ------------------------------------------------------------------- -->
-    <!-- COLUMN 4: DEDICATED AI COPILOT & SUGGESTIONS (360px) -->
-    <!-- ------------------------------------------------------------------- -->
-    <aside class="w-[360px] border-l border-slate-200 bg-white flex flex-col flex-shrink-0 h-full overflow-hidden">
-      
-      <div class="p-3.5 border-b border-slate-200 bg-slate-50/60 flex items-center justify-between flex-shrink-0">
-        <div class="flex items-center gap-2">
-          <div class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">AI</div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">AI Copilot & Smart Draft</h3>
-        </div>
-        <span class="text-[10px] font-mono text-slate-400" x-text="selectedEmail && selectedEmail.analysis ? `${selectedEmail.analysis.inference_latency_ms}ms` : ''"></span>
-      </div>
-
-      <div class="flex-1 overflow-y-auto p-4 space-y-4">
-        
-        <div x-show="!selectedEmail" class="p-8 text-center text-slate-400 text-xs">
-          Select an email to view ML reasoning and suggestion chips.
-        </div>
-
-        <div x-show="selectedEmail" class="space-y-4">
-
-          <!-- 1. Classification & RAG -->
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Classification</span>
-              <span class="text-[11px] font-mono font-bold text-blue-700" 
-                    x-text="selectedEmail && selectedEmail.analysis ? `${Math.round(selectedEmail.analysis.intent_confidence*100)}% Confidence` : ''"></span>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-1.5">
-              <span class="px-2 py-0.5 rounded-full text-xs font-bold"
-                    :class="selectedEmail && selectedEmail.analysis ? getIntentBadgeClass(selectedEmail.analysis.intent) : ''"
-                    x-text="selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.intent : ''"></span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-white border border-slate-200 text-slate-700"
-                    x-text="selectedEmail && selectedEmail.analysis ? `Tone: ${selectedEmail.analysis.tone}` : ''"></span>
-            </div>
-
-            <button @click="showRagDetails = !showRagDetails" 
-                    class="w-full flex items-center justify-between pt-1.5 border-t border-slate-200 text-[11px] font-semibold text-blue-700 hover:text-blue-800">
-              <span>FAISS RAG Style Matches</span>
-              <span x-text="showRagDetails ? '▲' : '▼'"></span>
-            </button>
-
-            <div x-show="showRagDetails" class="space-y-1.5 pt-1">
-              <template x-for="(r, i) in (selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.rag_context : [])" :key="i">
-                <div class="bg-white border border-slate-200 rounded p-2 text-[10px]">
-                  <div class="flex justify-between font-bold text-slate-800 mb-0.5">
-                    <span x-text="`#${i+1} ${r.notes}`"></span>
-                    <span class="text-blue-600 font-mono" x-text="`Sim: ${r.similarity.toFixed(3)}`"></span>
-                  </div>
-                  <p class="text-slate-500 italic line-clamp-2" x-text="r.content"></p>
-                </div>
-              </template>
-            </div>
-          </div>
-
-          <!-- 2. 4 Strategic Reply Personas -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">4 Strategic Personas:</span>
-              <span class="text-[10px] text-blue-600 font-semibold" x-show="activeChipId">Persona Active</span>
-            </div>
-            
-            <div class="space-y-1.5">
-              <template x-for="chip in (selectedEmail ? selectedEmail.suggestion_chips : [])" :key="chip.id">
-                <button @click="applySuggestionVariant(chip.id)" 
-                        class="w-full text-left p-2.5 rounded-xl border transition text-xs"
-                        :class="activeChipId === chip.id ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/20' : 'border-slate-200 hover:border-blue-400 bg-white'">
-                  <div class="font-bold text-slate-800 flex items-center justify-between">
-                    <span x-text="chip.label"></span>
-                    <span class="text-blue-600 font-bold" x-show="activeChipId === chip.id">✓</span>
-                    <span class="text-slate-400" x-show="activeChipId !== chip.id">→</span>
-                  </div>
-                  <p class="text-[10px] text-slate-500 mt-0.5" x-text="chip.desc"></p>
-                </button>
-              </template>
-            </div>
-          </div>
-
-          <!-- 3. Tone Selector -->
-          <div class="flex items-center justify-between pt-1">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Tone:</span>
-            <div class="flex items-center gap-1">
-              <button @click="changeTone('Professional')" class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                      :class="activeTone === 'Professional' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'">Prof</button>
-              <button @click="changeTone('Concise')" class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                      :class="activeTone === 'Concise' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'">Concise</button>
-              <button @click="changeTone('Friendly')" class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                      :class="activeTone === 'Friendly' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'">Friendly</button>
-            </div>
-          </div>
-
-          <!-- 4. Custom AI Guidance -->
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Custom Steering Prompt:</span>
-            <div class="flex gap-1.5">
-              <input type="text" x-model="customGuidance" placeholder="e.g. Propose Friday 4 PM instead..." @keyup.enter="applyCustomGuidance()"
-                     class="flex-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500">
-              <button @click="applyCustomGuidance()" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold">
-                Apply
-              </button>
-            </div>
-          </div>
-
-          <!-- 5. Editable Draft Textarea -->
-          <div>
-            <div class="flex items-center justify-between mb-1 text-[11px] text-slate-500 font-medium">
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-slate-700">Editable Response Draft</span>
-                <span x-show="generatingDraft" class="text-blue-600 font-bold text-[10px] animate-pulse flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span>
-                  Qwen 2.5 Coder drafting...
-                </span>
-              </div>
-              <button @click="changeTone(activeTone)" class="text-blue-600 text-[10px] font-bold hover:underline">Reset</button>
-            </div>
-            <textarea x-model="currentDraftText" :disabled="generatingDraft" rows="7"
-                      class="w-full bg-slate-50 border border-slate-300 focus:border-blue-600 focus:bg-white rounded-xl p-3 text-xs text-slate-900 leading-relaxed transition focus:outline-none disabled:opacity-60"></textarea>
-          </div>
-
-          <!-- 6. Actions: Save & Copy -->
-          <div class="grid grid-cols-2 gap-2">
-            <button @click="saveDraft()" :disabled="savingDraft || !currentDraftText.trim()" title="Save Draft (D)"
-                    class="py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 flex items-center justify-center gap-1.5 disabled:opacity-50">
-              <span x-show="!savingDraft">Save to Drafts (D)</span>
-              <span x-show="savingDraft">Saving...</span>
-            </button>
-
-            <button @click="copyDraftToClipboard()" :disabled="!currentDraftText.trim()" title="Copy (C)"
-                    class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5">
-              <span x-text="draftCopied ? '✓ Copied' : 'Copy (C)'"></span>
-            </button>
-          </div>
-
-        </div>
-
-      </div>
-
-    </aside>
 
   </main>
 
@@ -842,6 +865,7 @@
         loading: false,
         loadingMore: false,
         generatingDraft: false,
+        deepAnalyzing: false,
         savingDraft: false,
         draftCopied: false,
         showRagDetails: false,
@@ -1069,7 +1093,7 @@
           } catch(e) {}
         },
 
-        selectEmail(em) {
+        async selectEmail(em) {
           if (!em) return;
           this.selectedEmail = em;
           this.showRagDetails = false;
@@ -1080,6 +1104,45 @@
           this.currentDraftText = em.suggested_draft || '';
           this.viewMode = (em.html && em.html.trim().length > 0) ? 'html' : 'prose';
           this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+
+          // Background deep LLM reasoning with Qwen 2.5 Coder
+          await this.fetchDeepAnalysis(em);
+        },
+
+        async fetchDeepAnalysis(em) {
+          if (!em || em.deepAnalysisLoaded) return;
+          this.deepAnalyzing = true;
+          try {
+            const res = await fetch('/api/email/deep-analysis', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sender: em.sender,
+                subject: em.subject,
+                body: em.body,
+                intent: em.analysis ? em.analysis.intent : 'Action Required',
+                tone: this.activeTone,
+                variant: this.activeChipId || 'confirm',
+                custom_instruction: this.customGuidance || '',
+                checked_action_items: this.checkedActionItems || []
+              })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (this.selectedEmail && this.selectedEmail.id === em.id) {
+                if (data.insights) this.selectedEmail.insights = data.insights;
+                if (data.suggestion_chips) this.selectedEmail.suggestion_chips = data.suggestion_chips;
+                if (data.reply) this.currentDraftText = data.reply;
+                this.selectedEmail.deepAnalysisLoaded = true;
+                em.deepAnalysisLoaded = true;
+              }
+            }
+          } catch (e) {
+            console.warn('Deep analysis deferred fallback:', e);
+          } finally {
+            this.deepAnalyzing = false;
+            this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+          }
         },
 
         async regenerateReply() {

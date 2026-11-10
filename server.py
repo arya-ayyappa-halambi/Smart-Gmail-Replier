@@ -247,6 +247,31 @@ def get_suggestion_chips(intent: str) -> List[Dict[str, str]]:
         ]
 
 
+def fast_extract_insights(subject: str, sender: str, body: str, intent: str) -> Dict[str, Any]:
+    """Instant heuristic insights for initial list sync (<0.05ms per email)."""
+    return llm_engine._generate_heuristic_insights(subject, sender, body, intent)
+
+
+def fast_compose_reply(
+    sender: str,
+    subject: str,
+    body: str,
+    intent: str,
+    tone: str = "Professional",
+    variant: str = "confirm",
+) -> Dict[str, Any]:
+    """Instant heuristic draft for initial list sync (<0.05ms per email)."""
+    is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
+    reply_text = llm_engine._generate_heuristic_reply(sender, subject, body, intent, tone, variant, "", [])
+    return {
+        "reply": reply_text,
+        "auto_reply_recommended": not is_promo,
+        "reason": f"Classified as {intent} with {tone.lower()} tone under {variant} strategy.",
+        "suggested_action": "Archive / Skip Reply" if is_promo else "Review & Save to Gmail Drafts",
+        "suggestion_chips": get_suggestion_chips(intent),
+    }
+
+
 def extract_ai_insights(subject: str, sender: str, body: str, intent: str) -> Dict[str, Any]:
     """
     Extracts deep content understanding using qwen2.5-coder:7b:
@@ -457,8 +482,8 @@ def get_emails(
         bdy = sanitize_email_body(em.get("body", ""))
 
         analysis = ml_pipeline.analyze_email(sub, snd, bdy)
-        reply_meta = compose_smart_reply(snd, sub, bdy, analysis["intent"], "Professional")
-        insights = extract_ai_insights(sub, snd, bdy, analysis["intent"])
+        reply_meta = fast_compose_reply(snd, sub, bdy, analysis["intent"], "Professional")
+        insights = fast_extract_insights(sub, snd, bdy, analysis["intent"])
 
         enriched.append({
             "id": em.get("id"),
@@ -496,6 +521,39 @@ def get_emails(
     }
 
     return response_payload
+
+
+@app.post("/api/email/deep-analysis")
+def deep_analyze_email(req: GenerateReplyRequest):
+    """
+    On-demand background LLM inference for the currently viewed email.
+    Invokes qwen2.5-coder:7b to extract deep comprehension & custom persona reply.
+    """
+    intent = req.intent or "Action Required"
+    tone = req.tone or "Professional"
+    variant = req.variant or "confirm"
+    custom_instruction = req.custom_instruction or ""
+    checked = req.checked_action_items or []
+
+    insights = llm_engine.analyze_email_with_llm(req.subject, req.sender, req.body, intent)
+    reply_text = llm_engine.generate_persona_reply_with_llm(
+        sender=req.sender,
+        subject=req.subject,
+        body=req.body,
+        intent=intent,
+        tone=tone,
+        variant=variant,
+        custom_instruction=custom_instruction,
+        checked_action_items=checked,
+    )
+
+    is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
+    return {
+        "insights": insights,
+        "reply": reply_text,
+        "auto_reply_recommended": not is_promo,
+        "suggestion_chips": get_suggestion_chips(intent),
+    }
 
 
 @app.post("/api/generate-reply")
