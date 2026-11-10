@@ -622,40 +622,122 @@
               </div>
             </div>
 
-            <!-- Tone and Custom Steering Controls -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center pt-1">
-              <!-- Tone Selector -->
-              <div class="lg:col-span-4 flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-500">Tone:</span>
-                <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold">
-                  <button @click="changeTone('Professional')" class="px-2.5 py-1 rounded-md transition"
-                          :class="activeTone === 'Professional' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Prof</button>
-                  <button @click="changeTone('Concise')" class="px-2.5 py-1 rounded-md transition"
-                          :class="activeTone === 'Concise' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Concise</button>
-                  <button @click="changeTone('Friendly')" class="px-2.5 py-1 rounded-md transition"
-                          :class="activeTone === 'Friendly' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Friendly</button>
+            <!-- Dedicated Custom AI Steering Studio -->
+            <div class="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50 border border-blue-200/80 rounded-2xl p-4 shadow-2xs space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                    ✦
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-extrabold text-slate-900 tracking-tight">Personalized Prompt Studio</h4>
+                    <p class="text-[11px] text-slate-500">Instruct the model with your custom prompt. MailMind will tailor both Desired and Hybrid replies.</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-semibold text-blue-700 bg-blue-100/70 px-2.5 py-0.5 rounded-full" x-show="customGuidance">
+                  Custom Steered
+                </span>
+              </div>
+
+              <!-- Expansive Text Input -->
+              <div class="flex flex-col sm:flex-row gap-2">
+                <div class="relative flex-1">
+                  <input type="text" x-model="customGuidance" 
+                         placeholder="E.g. Say that I can only join after 5 PM because of college, and ask for the Zoom link..." 
+                         @keyup.enter="applyCustomGuidance()"
+                         class="w-full bg-white border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 transition shadow-xs focus:outline-none pr-8">
+                  <button x-show="customGuidance" @click="customGuidance = ''; regenerateReply()" title="Clear prompt"
+                          class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs">
+                    ✕
+                  </button>
+                </div>
+                <button @click="applyCustomGuidance()" :disabled="generatingDraft || !customGuidance.trim()"
+                        class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 flex-shrink-0">
+                  <span x-show="!generatingDraft">Generate 3 Drafts</span>
+                  <span x-show="generatingDraft">Synthesizing...</span>
+                  <span class="text-[10px] opacity-75 font-mono" x-show="!generatingDraft">↵</span>
+                </button>
+              </div>
+
+              <!-- Quick Prompt Preset Chips -->
+              <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Quick Starters:</span>
+                <button @click="setPromptPreset('Available only after 5:00 PM due to college CIE examinations; please share meeting credentials.')"
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
+                  🕒 Available after 5 PM (College CIE)
+                </button>
+                <button @click="setPromptPreset('Could you please share the Zoom or Google Meet link and session agenda?')"
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
+                  🔗 Request Zoom / Meet Link
+                </button>
+                <button @click="setPromptPreset('Request a 3-day extension to finalize and verify deliverables with project mentors.')"
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
+                  ⏳ Request 3-Day Grace Period
+                </button>
+                <button @click="setPromptPreset('Politely decline due to intense academic exam schedule at BMSCE, but stay connected.')"
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
+                  🛑 Decline due to Exams
+                </button>
+              </div>
+            </div>
+
+            <!-- Triple-Draft Perspective Switcher Tabs -->
+            <div class="space-y-2 pt-1">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                <!-- 3 Draft Tabs -->
+                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1">
+                  <button @click="switchDraftTab('suggested')" 
+                          class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+                          :class="activeDraftTab === 'suggested' ? 'bg-white text-blue-700 shadow-xs ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'">
+                    <span>✨ Suggested</span>
+                    <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(AI Autonomous)</span>
+                  </button>
+
+                  <button @click="switchDraftTab('desired')" 
+                          class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+                          :class="activeDraftTab === 'desired' ? 'bg-white text-purple-700 shadow-xs ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'">
+                    <span>🎯 Desired</span>
+                    <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(Your Prompt)</span>
+                  </button>
+
+                  <button @click="switchDraftTab('hybrid')" 
+                          class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+                          :class="activeDraftTab === 'hybrid' ? 'bg-white text-emerald-700 shadow-xs ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'">
+                    <span>⚡ Hybrid</span>
+                    <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(Suggested + Desired)</span>
+                  </button>
+                </div>
+
+                <!-- Tone Selector & Reset -->
+                <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-bold text-slate-500">Tone:</span>
+                    <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold">
+                      <button @click="changeTone('Professional')" class="px-2 py-0.5 rounded-md transition"
+                              :class="activeTone === 'Professional' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Prof</button>
+                      <button @click="changeTone('Concise')" class="px-2 py-0.5 rounded-md transition"
+                              :class="activeTone === 'Concise' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Concise</button>
+                      <button @click="changeTone('Friendly')" class="px-2 py-0.5 rounded-md transition"
+                              :class="activeTone === 'Friendly' ? 'bg-white text-blue-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'">Friendly</button>
+                    </div>
+                  </div>
+                  <button @click="changeTone(activeTone)" class="text-blue-600 text-xs font-bold hover:underline">Reset Draft</button>
                 </div>
               </div>
 
-              <!-- Custom AI Steering Input -->
-              <div class="lg:col-span-8 flex gap-2">
-                <input type="text" x-model="customGuidance" placeholder="Custom instructions (e.g. Schedule call for 4 PM Friday, ask for budget)..." @keyup.enter="applyCustomGuidance()"
-                       class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition">
-                <button @click="applyCustomGuidance()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex-shrink-0">
-                  Instruct
-                </button>
+              <!-- Active Perspective Info Callout -->
+              <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
+                <div>
+                  <span x-show="activeDraftTab === 'suggested'">Showing <b>Suggested Draft</b>: Context-aware response based on active persona.</span>
+                  <span x-show="activeDraftTab === 'desired'">Showing <b>Desired Draft</b>: Formatted strictly according to your prompt instructions.</span>
+                  <span x-show="activeDraftTab === 'hybrid'">Showing <b>Hybrid Draft</b>: Synthesized combination of email context and your prompt requirements.</span>
+                </div>
+                <span class="text-slate-400 font-mono text-[10px]" x-text="`${currentDraftText.length} chars`"></span>
               </div>
             </div>
 
             <!-- Editable Draft Textarea -->
             <div class="space-y-1.5">
-              <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-slate-800">Response Draft</span>
-                  <span class="text-[11px] text-slate-400">(Editable before saving)</span>
-                </div>
-                <button @click="changeTone(activeTone)" class="text-blue-600 text-xs font-bold hover:underline">Reset Draft</button>
-              </div>
               <textarea x-model="currentDraftText" :disabled="generatingDraft" rows="9"
                         class="w-full bg-slate-50/70 border border-slate-300 focus:border-blue-600 focus:bg-white rounded-2xl p-4 text-xs font-mono text-slate-900 leading-relaxed transition focus:outline-none disabled:opacity-60 shadow-inner"></textarea>
             </div>
@@ -879,6 +961,9 @@
         activeTone: 'Professional',
         activeChipId: 'confirm',
         customGuidance: '',
+        activeDraftTab: 'suggested',
+        draftTriple: { suggested: '', desired: '', hybrid: '' },
+        generatingTriple: false,
         checkedActionItems: [],
         currentDraftText: '',
         viewMode: 'html',
@@ -1100,6 +1185,18 @@
           } catch(e) {}
         },
 
+        switchDraftTab(tab) {
+          this.activeDraftTab = tab;
+          if (this.draftTriple && this.draftTriple[tab]) {
+            this.currentDraftText = this.draftTriple[tab];
+          }
+        },
+
+        setPromptPreset(presetText) {
+          this.customGuidance = presetText;
+          this.applyCustomGuidance();
+        },
+
         async selectEmail(em) {
           if (!em) return;
           this.selectedEmail = em;
@@ -1108,7 +1205,13 @@
           this.activeChipId = 'confirm';
           this.customGuidance = '';
           this.checkedActionItems = [];
-          this.currentDraftText = em.suggested_draft || '';
+          this.activeDraftTab = 'suggested';
+          this.draftTriple = {
+            suggested: em.suggested || em.suggested_draft || '',
+            desired: em.desired || em.suggested_draft || '',
+            hybrid: em.hybrid || em.suggested_draft || ''
+          };
+          this.currentDraftText = this.draftTriple.suggested;
           this.viewMode = (em.html && em.html.trim().length > 0) ? 'html' : 'prose';
           this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
@@ -1146,9 +1249,14 @@
                 if (data.suggestion_chips) this.selectedEmail.suggestion_chips = data.suggestion_chips;
                 if (data.sub_topic) this.selectedEmail.sub_topic = data.sub_topic;
                 if (data.incoming_tone) this.selectedEmail.incoming_tone = data.incoming_tone;
-                if (data.reply) {
-                  this.selectedEmail.suggested_draft = data.reply;
-                  this.currentDraftText = data.reply;
+                if (data.suggested || data.reply) {
+                  this.draftTriple = {
+                    suggested: data.suggested || data.reply,
+                    desired: data.desired || this.draftTriple.desired || data.reply,
+                    hybrid: data.hybrid || this.draftTriple.hybrid || data.reply
+                  };
+                  this.selectedEmail.suggested_draft = this.draftTriple.suggested;
+                  this.currentDraftText = this.draftTriple[this.activeDraftTab] || data.reply;
                 }
                 this.selectedEmail.deepAnalysisLoaded = true;
                 em.deepAnalysisLoaded = true;
@@ -1188,7 +1296,12 @@
               })
             });
             const data = await res.json();
-            this.currentDraftText = data.reply || '';
+            this.draftTriple = {
+              suggested: data.suggested || data.reply || '',
+              desired: data.desired || this.draftTriple.desired || data.reply || '',
+              hybrid: data.hybrid || this.draftTriple.hybrid || data.reply || ''
+            };
+            this.currentDraftText = this.draftTriple[this.activeDraftTab] || data.reply || '';
           } catch(e) {
             console.error(e);
           } finally {
@@ -1204,14 +1317,46 @@
         async applySuggestionVariant(chip) {
           const chipId = typeof chip === 'object' ? chip.id : chip;
           this.activeChipId = chipId;
+          this.activeDraftTab = 'suggested';
           await this.regenerateReply();
           this.showToast('Updated draft with selected persona!');
         },
 
         async applyCustomGuidance() {
           if (!this.selectedEmail || !this.customGuidance.trim()) return;
-          await this.regenerateReply();
-          this.showToast('Custom guidance integrated into draft!');
+          this.generatingDraft = true;
+          try {
+            const activeChip = (this.selectedEmail.suggestion_chips || []).find(c => c.id === this.activeChipId);
+            const res = await fetch('/api/generate-reply', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sender: this.selectedEmail.sender,
+                subject: this.selectedEmail.subject,
+                body: this.selectedEmail.body,
+                intent: this.selectedEmail.analysis ? this.selectedEmail.analysis.intent : 'Action Required',
+                tone: this.activeTone,
+                variant: this.activeChipId,
+                chip_label: activeChip ? activeChip.label : '',
+                chip_desc: activeChip ? activeChip.desc : '',
+                custom_instruction: this.customGuidance,
+                checked_action_items: this.checkedActionItems
+              })
+            });
+            const data = await res.json();
+            this.draftTriple = {
+              suggested: data.suggested || data.reply || '',
+              desired: data.desired || data.reply || '',
+              hybrid: data.hybrid || data.reply || ''
+            };
+            this.activeDraftTab = 'hybrid';
+            this.currentDraftText = this.draftTriple.hybrid;
+            this.showToast('Generated 3-Way Drafts (Hybrid active)!');
+          } catch(e) {
+            console.error(e);
+          } finally {
+            this.generatingDraft = false;
+          }
         },
 
         async onActionItemToggled() {

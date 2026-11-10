@@ -368,7 +368,7 @@ def unified_email_reasoning(
     strategy_desc = chip_desc or active_chip["desc"]
 
     fallback_insights = _generate_heuristic_insights(subject, sender, body, intent, sub_topic)
-    fallback_reply = _generate_heuristic_reply(
+    fallback_triple = _generate_triple_heuristic_drafts(
         sender=sender,
         subject=subject,
         body=body,
@@ -381,11 +381,16 @@ def unified_email_reasoning(
         custom_instruction=custom_instruction,
         checked_action_items=checked
     )
+    fallback_reply = fallback_triple["hybrid"] if custom_instruction.strip() else fallback_triple["suggested"]
 
     if not is_ollama_available():
         res = {
             "insights": fallback_insights,
             "reply": fallback_reply,
+            "suggested": fallback_triple["suggested"],
+            "desired": fallback_triple["desired"],
+            "hybrid": fallback_triple["hybrid"],
+            "active_draft": "hybrid" if custom_instruction.strip() else "suggested",
             "suggestion_chips": chips,
             "sub_topic": sub_topic_label,
             "incoming_tone": detected_tone
@@ -426,7 +431,7 @@ def unified_email_reasoning(
         custom_note = f"\nUser steering instruction: Incorporate this specific guidance: '{custom_instruction.strip()}'\n"
 
     prompt = (
-        "You are an AI email assistant drafting an authentic, highly context-aware response for Arya Ayyappa Halambi.\n"
+        "You are an AI email assistant drafting authentic, highly context-aware responses for Arya Ayyappa Halambi.\n"
         "Carefully read the incoming email below. Notice specific dates, room/lab numbers, assignment names, code details, or questions.\n\n"
         f"Incoming Email:\n"
         f"From: {sender}\n"
@@ -438,13 +443,15 @@ def unified_email_reasoning(
         f"{action_note}"
         f"{custom_note}"
         f"\nSignature Requirement:\n{signature_inst}\n\n"
-        "Draft an email-specific reply that follows the Chosen Response Strategy and directly references the concrete facts, dates, deliverables, or questions in this email.\n"
-        "Return a valid JSON object with exactly these 4 keys:\n"
+        "Draft email-specific replies that directly reference the concrete facts, dates, deliverables, or questions in this email.\n"
+        "Return a valid JSON object with exactly these 6 keys:\n"
         "{\n"
         '  "simple_words": "1-2 sentence plain English explanation summarizing what the sender is communicating.",\n'
         '  "expectation": "Concrete deliverable, action, or deadline expected by the sender.",\n'
         '  "action_items": ["Specific practical action 1", "Specific practical action 2"],\n'
-        '  "reply": "Full drafted email response (salutation, body paragraphs addressing email specifics, and formal signature)."\n'
+        '  "suggested": "Full drafted email response adhering strictly to the Chosen Response Strategy.",\n'
+        '  "desired": "Email response directly addressing the user custom instruction (or direct intent).",\n'
+        '  "hybrid": "Synthesized response combining contextual facts/deliverables with user instruction."\n'
         "}\n\n"
         "Return ONLY the valid JSON object. No other text."
     )
@@ -456,7 +463,7 @@ def unified_email_reasoning(
             "stream": False,
             "options": {
                 "temperature": 0.25,
-                "num_predict": 280
+                "num_predict": 360
             }
         }
         req = urllib.request.Request(
@@ -481,13 +488,24 @@ def unified_email_reasoning(
             simple_words = parsed.get("simple_words") or fallback_insights["simple_words"]
             expectation = parsed.get("expectation") or fallback_insights["expectation"]
             action_items = parsed.get("action_items") or fallback_insights["action_items"]
-            reply_text = parsed.get("reply", "").strip()
+            
+            # Extract suggested, desired, hybrid
+            suggested_text = (parsed.get("suggested") or parsed.get("reply") or "").strip()
+            desired_text = (parsed.get("desired") or "").strip()
+            hybrid_text = (parsed.get("hybrid") or "").strip()
 
-            # Clean any leading Subject: header line if model returned it
-            reply_text = re.sub(r'^Subject:\s*.*?\n+', '', reply_text, flags=re.IGNORECASE).strip()
+            suggested_text = re.sub(r'^Subject:\s*.*?\n+', '', suggested_text, flags=re.IGNORECASE).strip()
+            desired_text = re.sub(r'^Subject:\s*.*?\n+', '', desired_text, flags=re.IGNORECASE).strip()
+            hybrid_text = re.sub(r'^Subject:\s*.*?\n+', '', hybrid_text, flags=re.IGNORECASE).strip()
 
-            if not reply_text or len(reply_text) < 30:
-                reply_text = fallback_reply
+            if not suggested_text or len(suggested_text) < 30:
+                suggested_text = fallback_triple["suggested"]
+            if not desired_text or len(desired_text) < 20:
+                desired_text = fallback_triple["desired"]
+            if not hybrid_text or len(hybrid_text) < 30:
+                hybrid_text = fallback_triple["hybrid"]
+
+            primary_reply = hybrid_text if custom_instruction.strip() else suggested_text
 
             insights_res = {
                 "simple_words": str(simple_words).strip(),
@@ -501,7 +519,11 @@ def unified_email_reasoning(
 
             result = {
                 "insights": insights_res,
-                "reply": reply_text,
+                "reply": primary_reply,
+                "suggested": suggested_text,
+                "desired": desired_text,
+                "hybrid": hybrid_text,
+                "active_draft": "hybrid" if custom_instruction.strip() else "suggested",
                 "suggestion_chips": chips,
                 "sub_topic": sub_topic_label,
                 "incoming_tone": detected_tone
@@ -514,6 +536,10 @@ def unified_email_reasoning(
         res = {
             "insights": fallback_insights,
             "reply": fallback_reply,
+            "suggested": fallback_triple["suggested"],
+            "desired": fallback_triple["desired"],
+            "hybrid": fallback_triple["hybrid"],
+            "active_draft": "hybrid" if custom_instruction.strip() else "suggested",
             "suggestion_chips": chips,
             "sub_topic": sub_topic_label,
             "incoming_tone": detected_tone
@@ -566,6 +592,33 @@ def generate_persona_reply_with_llm(
         chip_desc=chip_desc
     )
     return res["reply"]
+
+
+def generate_triple_drafts_with_llm(
+    sender: str,
+    subject: str,
+    body: str,
+    intent: str,
+    tone: str = "Professional",
+    variant: str = "confirm",
+    custom_instruction: str = "",
+    checked_action_items: Optional[List[str]] = None,
+    chip_label: Optional[str] = "",
+    chip_desc: Optional[str] = ""
+) -> Dict[str, Any]:
+    """Invokes unified reasoning returning suggested, desired, and hybrid drafts."""
+    return unified_email_reasoning(
+        sender=sender,
+        subject=subject,
+        body=body,
+        intent=intent,
+        tone=tone,
+        variant=variant,
+        custom_instruction=custom_instruction,
+        checked_action_items=checked_action_items,
+        chip_label=chip_label,
+        chip_desc=chip_desc
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -766,17 +819,79 @@ def _generate_heuristic_reply(
                 f"functional prototype, and Git commit logs. We will be present during the scheduled review slot."
             )
 
+    elif sub_topic == "academic_exam":
+        if variant == "inquire":
+            body_msg = (
+                f"Thank you for sharing the circular regarding {clean_sub}.\n\n"
+                f"Could you please clarify if Unit 5 and the experimental lab components are included in the syllabus scope "
+                f"for this upcoming CIE evaluation?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Thank you for circulating the examination timetable regarding {clean_sub}{dates_str}.\n\n"
+                f"I would like to bring to your attention that there is an active timetable clash with another scheduled evaluation. "
+                f"Would it be possible to arrange an alternate sitting?"
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Thank you for the notice regarding {clean_sub}{dates_str}.\n\n"
+                f"I am writing to formally submit an intimation regarding an unavoidable absence on medical grounds. "
+                f"I will submit the official medical documentation to the department office upon recovery."
+            )
+        else:
+            body_msg = (
+                f"Thank you for the update regarding the examination timetable for {clean_sub}{dates_str}.\n\n"
+                f"I have noted the schedule and venue details{venues_str}, and am proceeding with structured revision accordingly."
+            )
+
     elif sub_topic == "academic_classroom":
         if variant == "inquire":
             body_msg = (
-                f"Thank you for sharing the materials regarding {clean_sub}.\n\n"
-                f"I have a quick question regarding the problem statement and edge-case handling mentioned in the tutorial. "
+                f"Thank you for sharing the lecture notes and materials regarding {clean_sub}.\n\n"
+                f"I have a quick clarifying question regarding the problem statement and edge-case handling mentioned in the tutorial. "
                 f"Could you clarify the expected time-complexity bounds for this exercise?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Thank you for the assignment brief on {clean_sub}.\n\n"
+                f"Due to overlapping CIE lab preparations, could our batch kindly request a brief 24-hour extension "
+                f"to complete testing and refine our code submissions?"
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Thank you for the study materials on {clean_sub}.\n\n"
+                f"I have a few implementation doubts regarding the syntax. Would it be convenient for me to meet you "
+                f"briefly during department office hours tomorrow to discuss them?"
             )
         else:
             body_msg = (
                 f"Thank you for sharing the lecture notes and practice exercises regarding {clean_sub}.\n\n"
                 f"I have reviewed the syllabus topics and will work through the assigned practice problems in preparation for class."
+            )
+
+    elif sub_topic == "academic_admin":
+        if variant == "inquire":
+            body_msg = (
+                f"Thank you for the circular regarding {clean_sub}.\n\n"
+                f"Could you please clarify the eligibility criteria and confirm whether the clearance forms "
+                f"must be signed physically by the department coordinator?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Thank you for the circular regarding {clean_sub}.\n\n"
+                f"Could I please request a meeting appointment with the department office later this week to clarify "
+                f"my semester elective credit registration?"
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Thank you for the notification regarding {clean_sub}.\n\n"
+                f"I would like to submit a formal representation regarding my attendance and duty-leave records "
+                f"for participating in the college hackathon."
+            )
+        else:
+            body_msg = (
+                f"Thank you for the administrative notification regarding {clean_sub}.\n\n"
+                f"I have noted the circular guidelines and will ensure all required formalities are completed on time."
             )
 
     elif sub_topic == "dev_pull_request":
@@ -791,11 +906,62 @@ def _generate_heuristic_reply(
                 f"To keep this PR focused and maintainable, would it be acceptable to merge the current modular docs and track the "
                 f"extended CDC streams documentation in a dedicated follow-up issue?"
             )
+        elif variant == "decline":
+            body_msg = (
+                f"Thanks for the feedback on {clean_sub}.\n\n"
+                f"The current architectural pattern was chosen specifically to keep runtime memory footprint bounded under 256MB. "
+                f"I have documented the performance benchmarks in the PR discussion for your review."
+            )
         else:
             body_msg = (
                 f"Thanks for reviewing {clean_sub}.\n\n"
-                f"I have inspected the requested changes and pushed the updated documentation commits to the branch. "
+                f"I have inspected the requested changes and pushed the updated commits to the branch. "
                 f"All CI checks are passing and ready for re-review."
+            )
+
+    elif sub_topic == "dev_alert":
+        if variant == "inquire":
+            body_msg = (
+                f"Received the automated alert for {clean_sub}.\n\n"
+                f"Could you please share the distributed trace IDs and Prometheus metrics dashboard link so we can isolate the affected microservice?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Alert acknowledged for {clean_sub}.\n\n"
+                f"We are actively triaging the error logs and running system diagnostics. I will post a follow-up status update within 30 minutes."
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Checked the telemetry for {clean_sub}.\n\n"
+                f"This appears to be a transient spike triggered by scheduled staging integration tests. Production traffic is unaffected and error rates remain at baseline."
+            )
+        else:
+            body_msg = (
+                f"Acknowledging the monitoring alert for {clean_sub}.\n\n"
+                f"The service telemetry has been inspected, root cause identified, and mitigation is currently in place. Metrics are normalizing."
+            )
+
+    elif sub_topic == "dev_collaboration":
+        if variant == "inquire":
+            body_msg = (
+                f"Thanks for initiating the technical discussion on {clean_sub}.\n\n"
+                f"Could you elaborate on the latency vs. memory trade-offs between the proposed architectural options before we proceed?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Thanks for circulating the proposal for {clean_sub}.\n\n"
+                f"Would you be free for a 15-minute quick sync on Google Meet tomorrow afternoon to align on the interface boundaries?"
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Thanks for sharing {clean_sub}.\n\n"
+                f"Given our current deployment constraints, introducing an external dependency here might add unnecessary maintenance overhead. "
+                f"I would recommend considering a lightweight in-tree alternative."
+            )
+        else:
+            body_msg = (
+                f"Thanks for sharing the technical RFC on {clean_sub}.\n\n"
+                f"The design looks solid and addresses our requirements. I will proceed with the initial implementation branch as outlined."
             )
 
     elif sub_topic == "career_interview":
@@ -823,20 +989,143 @@ def _generate_heuristic_reply(
                 f"I am pleased to confirm my availability for the proposed discussion{dates_str}. I look forward to speaking with the team."
             )
 
+    elif sub_topic == "career_offer":
+        if variant == "inquire":
+            body_msg = (
+                f"Thank you for extending the offer for {clean_sub}.\n\n"
+                f"Before signing, could you please provide more details regarding onboarding dates, hardware provisioning, and remote work policies?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Thank you so much for the offer letter for {clean_sub}.\n\n"
+                f"May I please request a 3-day consideration window until Friday to thoroughly review the terms and academic schedule with my faculty mentors?"
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Thank you very much for the offer for {clean_sub}.\n\n"
+                f"After careful consideration of my current academic research commitments at BMSCE, I have decided to respectfully decline. I greatly appreciate your time and support."
+            )
+        else:
+            body_msg = (
+                f"Thank you so much for the offer letter for {clean_sub}!\n\n"
+                f"I am thrilled to accept the position and look forward to joining the team. I have reviewed the terms and will submit the signed documentation shortly."
+            )
+
+    elif sub_topic == "career_inquiry":
+        if variant == "inquire":
+            body_msg = (
+                f"Thank you for reaching out regarding {clean_sub}.\n\n"
+                f"Could you share more information about the primary technical stack, team responsibilities, and internship duration for this role?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Thank you for considering me for {clean_sub}.\n\n"
+                f"I am currently completing my semester coursework at BMSCE. Could we stay connected and revisit this for the upcoming summer internship cycle?"
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Thank you for reaching out regarding {clean_sub}.\n\n"
+                f"I am not actively looking for new opportunities at this moment due to academic commitments, but I would be glad to stay connected on LinkedIn."
+            )
+        else:
+            body_msg = (
+                f"Thank you for reaching out regarding {clean_sub}.\n\n"
+                f"I am very interested in this opportunity! I have attached my updated resume and GitHub portfolio showcasing my full-stack and machine learning projects."
+            )
+
+    elif sub_topic == "admin_invoice":
+        if variant == "inquire":
+            body_msg = (
+                f"Thank you for sending the billing details for {clean_sub}.\n\n"
+                f"Could you please provide an itemized breakdown including GST/tax details and payment method confirmation for our records?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Regarding the invoice for {clean_sub}, I noticed a duplicate transaction debit on our account.\n\n"
+                f"Could your billing support team please review this charge and initiate a refund for the duplicate transaction?"
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Regarding the subscription invoice for {clean_sub}.\n\n"
+                f"Please cancel this subscription plan and halt any recurring auto-debits on this account effective immediately."
+            )
+        else:
+            body_msg = (
+                f"Thank you for providing the invoice for {clean_sub}.\n\n"
+                f"The transaction has been verified and recorded for our accounting records."
+            )
+
+    elif sub_topic == "admin_security":
+        if variant == "inquire":
+            body_msg = (
+                f"Thank you for the security notice regarding {clean_sub}.\n\n"
+                f"Could you please provide the full IP address, device user-agent, and approximate geolocation associated with this session?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Regarding the security alert for {clean_sub}, I do NOT recognize this activity.\n\n"
+                f"Please terminate all active sessions immediately while I proceed to change my password and update 2FA."
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Noted the automated security confirmation notice for {clean_sub}.\n\n"
+                f"No further action is required at this time."
+            )
+        else:
+            body_msg = (
+                f"Thank you for the security notification regarding {clean_sub}.\n\n"
+                f"I confirm that this recent sign-in activity was authorized and initiated by me."
+            )
+
+    elif sub_topic == "newsletter":
+        if variant == "inquire":
+            body_msg = (
+                f"Thank you for the newsletter digest on {clean_sub}.\n\n"
+                f"Could you please share a direct link to my subscription preference center so I can customize my topic preferences and digest frequency?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Thanks for the curated newsletter edition on {clean_sub}.\n\n"
+                f"I have saved this issue to my reading list to review over the weekend."
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Please unsubscribe my email address from this newsletter distribution list regarding {clean_sub} "
+                f"and remove me from future marketing digests."
+            )
+        else:
+            body_msg = (
+                f"Thank you for sending the latest update on {clean_sub}.\n\n"
+                f"I have reviewed the highlights and archived them for reference."
+            )
+
     else:
-        # General specific fallback
-        body_msg = (
-            f"Thank you for contacting me regarding {clean_sub}.\n\n"
-            f"I have reviewed your message{dates_str} and will ensure the required actions are followed up promptly."
-        )
+        # General sub-topic
+        if variant == "inquire":
+            body_msg = (
+                f"Thank you for getting in touch about {clean_sub}.\n\n"
+                f"Could you please provide a few additional details so that I can better understand your requirements and respond accordingly?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Thank you for your message regarding {clean_sub}.\n\n"
+                f"I am currently tied up with prior academic commitments today. Would it be convenient to connect later this week to discuss this further?"
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Thank you for reaching out regarding {clean_sub}.\n\n"
+                f"Due to my current project schedule and exam preparations, I will not be able to take this up at this time. Thank you for your understanding."
+            )
+        else:
+            body_msg = (
+                f"Thank you for contacting me regarding {clean_sub}.\n\n"
+                f"I have reviewed your message{dates_str} and will follow up with the required updates promptly."
+            )
 
     # Attach checked items
     if checked_action_items:
         items_str = "\n".join([f"• Confirmed: {item}" for item in checked_action_items])
         body_msg += f"\n\nDeliverable Checklist:\n{items_str}"
-
-    if custom_instruction.strip():
-        body_msg += f"\n\nNote: {custom_instruction.strip()}"
 
     if is_academic:
         sig = (
@@ -850,3 +1139,105 @@ def _generate_heuristic_reply(
         sig = "Best regards,\nArya Ayyappa Halambi"
 
     return f"{salutation}\n\n{body_msg}\n\n{sig}"
+
+
+def _format_user_prompt_into_body(prompt_raw: str, clean_sub: str) -> str:
+    """Transforms conversational user instructions into authentic email paragraphs."""
+    raw = prompt_raw.strip()
+    if not raw:
+        return f"Regarding {clean_sub}, please let me know how you would like to proceed."
+
+    # If user already wrote a full letter, preserve it
+    if raw.lower().startswith(("dear ", "hi ", "hello ", "greetings")):
+        return raw
+
+    # Convert common 3rd-person steering phrases into professional 1st-person email prose
+    p = raw
+    p = re.sub(r'^(?:please\s+)?(?:say|tell\s+them|let\s+them\s+know|inform\s+them)\s+(?:that\s+)?', 'I would like to let you know that ', p, flags=re.IGNORECASE)
+    p = re.sub(r'\b(?:and\s+)?(?:please\s+)?(?:ask\s+for|request)\s+(?:the\s+)?', 'Could you please share the ', p, flags=re.IGNORECASE)
+    p = re.sub(r'\b(?:and\s+)?(?:please\s+)?ask\s+if\s+', 'Could you please let me know if ', p, flags=re.IGNORECASE)
+    p = re.sub(r'\b(?:because\s+of\s+college|due\s+to\s+college)\b', 'due to ongoing college academic commitments', p, flags=re.IGNORECASE)
+
+    if len(p) > 1 and p[0].islower():
+        p = p[0].upper() + p[1:]
+    if not p.endswith(('.', '!', '?')):
+        p += '.'
+
+    if 'Could you please' in p and not p.startswith('Could you please'):
+        parts = p.split('Could you please', 1)
+        first_clause = parts[0].strip()
+        second_clause = 'Could you please ' + parts[1].strip()
+        return f"Regarding {clean_sub}, {first_clause}\n\n{second_clause}"
+
+    return f"Regarding {clean_sub}, {p}"
+
+
+def _generate_triple_heuristic_drafts(
+    sender: str,
+    subject: str,
+    body: str,
+    intent: str,
+    sub_topic: str,
+    tone: str,
+    variant: str,
+    strategy_label: str,
+    strategy_desc: str,
+    custom_instruction: str,
+    checked_action_items: List[str]
+) -> Dict[str, str]:
+    """Generates 3 distinct drafts: Suggested (AI Persona), Desired (User Instruction), and Hybrid (Best of Both)."""
+    clean_sender = _clean_sender_name(sender)
+    clean_sub = re.sub(r'^(Re:\s*|Fwd:\s*)+', '', subject, flags=re.IGNORECASE).strip()
+    is_academic = intent == "Academic/Faculty"
+    salutation = f"Dear {clean_sender}," if is_academic else f"Hi {clean_sender},"
+    sig = (
+        "Best regards,\n"
+        "Arya Ayyappa Halambi\n"
+        "USN: 1BF25CS095\n"
+        "Department of Computer Science and Engineering\n"
+        "B.M.S. College of Engineering (BMSCE)"
+    ) if is_academic else "Best regards,\nArya Ayyappa Halambi"
+
+    # 1. Suggested Draft: Autonomous AI Persona response
+    suggested = _generate_heuristic_reply(
+        sender=sender,
+        subject=subject,
+        body=body,
+        intent=intent,
+        sub_topic=sub_topic,
+        tone=tone,
+        variant=variant,
+        strategy_label=strategy_label,
+        strategy_desc=strategy_desc,
+        custom_instruction="",
+        checked_action_items=checked_action_items
+    )
+
+    raw_inst = custom_instruction.strip()
+    if not raw_inst:
+        return {
+            "suggested": suggested,
+            "desired": suggested,
+            "hybrid": suggested
+        }
+
+    # 2. Desired Draft: Strictly executing the user's prompt
+    desired_body = _format_user_prompt_into_body(raw_inst, clean_sub)
+    if checked_action_items:
+        items_str = "\n".join([f"• Confirmed: {item}" for item in checked_action_items])
+        desired_body += f"\n\nDeliverable Checklist:\n{items_str}"
+    desired = f"{salutation}\n\n{desired_body}\n\n{sig}"
+
+    # 3. Hybrid Draft: Synthesizing Contextual Anchor + User Steering Prompt
+    suggested_paragraphs = [p.strip() for p in suggested.split("\n\n") if p.strip()]
+    context_paras = [p for p in suggested_paragraphs if not p.startswith(("Dear ", "Hi ", "Best regards", "USN:", "Department", "Arya"))]
+    context_anchor = context_paras[0] if context_paras else f"Thank you for contacting me regarding {clean_sub}."
+
+    hybrid_body = f"{context_anchor}\n\n{desired_body}"
+    hybrid = f"{salutation}\n\n{hybrid_body}\n\n{sig}"
+
+    return {
+        "suggested": suggested,
+        "desired": desired,
+        "hybrid": hybrid
+    }

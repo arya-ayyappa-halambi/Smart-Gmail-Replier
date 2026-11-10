@@ -235,7 +235,7 @@ def fast_compose_reply(
     chips = llm_engine.generate_dynamic_suggestion_chips(meta["sub_topic"], subject, intent)
     active_chip = next((c for c in chips if c["id"] == variant), chips[0])
     is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
-    reply_text = llm_engine._generate_heuristic_reply(
+    triple = llm_engine._generate_triple_heuristic_drafts(
         sender=sender,
         subject=subject,
         body=body,
@@ -249,7 +249,11 @@ def fast_compose_reply(
         checked_action_items=[]
     )
     return {
-        "reply": reply_text,
+        "reply": triple["suggested"],
+        "suggested": triple["suggested"],
+        "desired": triple["desired"],
+        "hybrid": triple["hybrid"],
+        "active_draft": "suggested",
         "auto_reply_recommended": not is_promo,
         "reason": f"Topic '{meta['sub_topic_label']}' ({meta['incoming_tone']}) under {active_chip['label']} strategy.",
         "suggested_action": "Archive / Skip Reply" if is_promo else "Review & Save to Gmail Drafts",
@@ -285,7 +289,7 @@ def compose_smart_reply(
     chips = llm_engine.generate_dynamic_suggestion_chips(meta["sub_topic"], subject, intent)
     active_chip = next((c for c in chips if c["id"] == variant), chips[0])
 
-    reply_text = llm_engine.generate_persona_reply_with_llm(
+    res = llm_engine.generate_triple_drafts_with_llm(
         sender=sender,
         subject=subject,
         body=body,
@@ -298,8 +302,14 @@ def compose_smart_reply(
         chip_desc=chip_desc or active_chip["desc"],
     )
 
+    primary_reply = res.get("reply") or res.get("suggested") or ""
+
     return {
-        "reply": reply_text,
+        "reply": primary_reply,
+        "suggested": res.get("suggested") or primary_reply,
+        "desired": res.get("desired") or primary_reply,
+        "hybrid": res.get("hybrid") or primary_reply,
+        "active_draft": res.get("active_draft") or ("hybrid" if custom_instruction.strip() else "suggested"),
         "auto_reply_recommended": not is_promo,
         "reason": f"Topic '{meta['sub_topic_label']}' ({meta['incoming_tone']}) under {active_chip['label']} strategy.",
         "suggested_action": "Archive / Skip Reply" if is_promo else "Review & Save to Gmail Drafts",
@@ -497,6 +507,10 @@ def get_emails(
             "suggested_action": reply_meta["suggested_action"],
             "suppression_reason": reply_meta.get("reason"),
             "suggested_draft": reply_meta["reply"],
+            "suggested": reply_meta.get("suggested", reply_meta["reply"]),
+            "desired": reply_meta.get("desired", reply_meta["reply"]),
+            "hybrid": reply_meta.get("hybrid", reply_meta["reply"]),
+            "active_draft": reply_meta.get("active_draft", "suggested"),
             "suggestion_chips": reply_meta.get("suggestion_chips", []),
             "sub_topic": reply_meta.get("sub_topic", "General"),
             "incoming_tone": reply_meta.get("incoming_tone", "Professional"),
@@ -549,9 +563,14 @@ def deep_analyze_email(req: GenerateReplyRequest):
     )
 
     is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
+    primary_reply = result.get("reply") or result.get("suggested") or ""
     return {
         "insights": result["insights"],
-        "reply": result["reply"],
+        "reply": primary_reply,
+        "suggested": result.get("suggested") or primary_reply,
+        "desired": result.get("desired") or primary_reply,
+        "hybrid": result.get("hybrid") or primary_reply,
+        "active_draft": result.get("active_draft") or ("hybrid" if custom_instruction.strip() else "suggested"),
         "auto_reply_recommended": not is_promo,
         "suggestion_chips": result["suggestion_chips"],
         "sub_topic": result.get("sub_topic", "General"),

@@ -96,6 +96,15 @@ Redesigned from cramped multi-column panels into an expansive 3-pane client:
 ### 5. Automatic Zero-Click Google OAuth Redirect
 Solves the traditional CLI/WSGI OAuth trap where users were left stranded on a blank `"You may close this window"` page. The local WSGI redirect handler serves an HTML response with automated JavaScript redirection (`window.location.replace("http://localhost:8000/")`), immediately returning the user directly inside their authenticated inbox.
 
+### 6. Personalized AI Prompt Studio & Triple-Draft Generation (`Suggested`, `Desired`, `Hybrid`)
+Provides fine-grained conversational steering directly beneath the email reader:
+- **Personalized Prompt Studio**: Allows the user to provide specific freeform steering instructions (e.g., *"Say that I can only join after 5 PM because of college CIE exams, and ask for the Zoom link"*).
+- **Triple-Draft Perspective Synthesis**:
+  1. **✨ Suggested (Autonomous AI)**: Context-aware response formulated according to the email's facts and selected strategic persona.
+  2. **🎯 Desired (User-Directed)**: Response formatted strictly around the user's specific guidance, with domain-aware salutations and formal BMSCE signatures.
+  3. **⚡ Hybrid (Suggested + Desired)**: Expert synthesis blending contextual deliverable acknowledgments with the user's operational constraints.
+- **Segmented Control Switcher**: Instant zero-lag tab switching between the 3 perspectives in the composer before saving safely to Gmail Drafts (<kbd>D</kbd>) or copying (<kbd>C</kbd>).
+
 ---
 
 ## 4. System Architecture & Dataflow
