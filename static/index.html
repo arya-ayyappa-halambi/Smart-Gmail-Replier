@@ -405,7 +405,7 @@
       <div x-show="selectedEmail" class="flex-1 flex flex-col h-full overflow-hidden">
         
         <!-- Header Toolbar (Crisp, Compact, Never Overflows) -->
-        <div class="px-6 py-3 border-b border-slate-200 bg-white/95 backdrop-blur-md flex-shrink-0 z-10 space-y-2">
+        <div class="px-6 py-2.5 border-b border-slate-200 bg-white flex-shrink-0 z-10 space-y-1.5 max-h-24 overflow-hidden">
           
           <!-- Row 1: Subject + Action Buttons -->
           <div class="flex items-center justify-between gap-3">
@@ -436,39 +436,39 @@
           </div>
 
           <!-- Row 2: Metadata (Sender, Domain, Date) + Topic Badges -->
-          <div class="flex items-center justify-between gap-2 text-xs flex-wrap">
+          <div class="flex items-center justify-between gap-2 text-xs">
             <!-- Left: Sender Info -->
             <div class="flex items-center gap-2 min-w-0 truncate">
               <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px] shadow-xs flex-shrink-0" 
                    x-text="selectedEmail && selectedEmail.sender_clean ? selectedEmail.sender_clean.substring(0, 2).toUpperCase() : 'EM'"></div>
-              <span class="font-bold text-slate-900 truncate" x-text="selectedEmail ? selectedEmail.sender_clean : ''"></span>
-              <span class="font-mono text-[11px] text-slate-400 truncate hidden md:inline" x-text="selectedEmail ? `<${selectedEmail.sender}>` : ''"></span>
+              <span class="font-bold text-slate-900 truncate max-w-[150px]" x-text="selectedEmail ? selectedEmail.sender_clean : ''"></span>
+              <span class="font-mono text-[11px] text-slate-400 truncate max-w-[180px] hidden md:inline" x-text="selectedEmail ? `<${selectedEmail.sender}>` : ''"></span>
 
               <template x-if="selectedEmail && selectedEmail.insights && selectedEmail.insights.domain_verified">
-                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1 flex-shrink-0">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1 flex-shrink-0 whitespace-nowrap">
                   <span>✓</span> Verified
                 </span>
               </template>
 
-              <span class="text-[10px] text-slate-400 font-mono flex-shrink-0 hidden sm:inline" 
+              <span class="text-[10px] text-slate-400 font-mono whitespace-nowrap flex-shrink-0 hidden sm:inline" 
                     x-text="selectedEmail && selectedEmail.insights ? `⏱ ${selectedEmail.insights.reading_time}` : ''"></span>
-              <span class="text-slate-400 font-mono text-[11px] flex-shrink-0" x-text="selectedEmail ? selectedEmail.date : ''"></span>
+              <span class="text-slate-400 font-mono text-[11px] whitespace-nowrap flex-shrink-0" x-text="selectedEmail ? formatDate(selectedEmail.date) : ''"></span>
             </div>
 
             <!-- Right: Sub-Topic & Intent Pills -->
             <div class="flex items-center gap-1.5 flex-shrink-0">
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold shadow-2xs"
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold shadow-2xs whitespace-nowrap"
                     :class="selectedEmail && selectedEmail.analysis ? getIntentBadgeClass(selectedEmail.analysis.intent) : ''"
                     x-text="selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.intent : ''"></span>
 
               <template x-if="selectedEmail && selectedEmail.sub_topic">
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs flex items-center gap-1 max-w-[240px] truncate">
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs flex items-center gap-1 max-w-[180px] truncate whitespace-nowrap">
                   <span class="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
                   <span class="truncate" x-text="selectedEmail.sub_topic"></span>
                 </span>
               </template>
 
-              <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-600"
+              <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-600 whitespace-nowrap"
                     x-text="selectedEmail && selectedEmail.analysis ? `${Math.round(selectedEmail.analysis.intent_confidence*100)}%` : ''"></span>
             </div>
           </div>
@@ -665,10 +665,14 @@
                   </button>
                 </div>
                 <button @click="applyCustomGuidance(false)" :disabled="generatingDraft || !customGuidance.trim()"
-                        class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 flex-shrink-0">
-                  <span x-show="!generatingDraft">Generate 3 Drafts</span>
-                  <span x-show="generatingDraft">Polishing...</span>
-                  <span class="text-[10px] opacity-75 font-mono" x-show="!generatingDraft">↵</span>
+                        class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm shadow-blue-500/20 disabled:opacity-50 flex-shrink-0">
+                  <span x-show="!generatingDraft" class="flex items-center gap-1.5">
+                    <span>Send Prompt</span>
+                    <span class="text-[11px]">➔</span>
+                  </span>
+                  <span x-show="generatingDraft" class="flex items-center gap-1.5">
+                    <span>Applying...</span>
+                  </span>
                 </button>
               </div>
 
@@ -748,9 +752,6 @@
                   <span x-show="activeDraftTab === 'suggested'">Showing <b>Suggested Draft</b>: Context-aware response based on active persona.</span>
                   <span x-show="activeDraftTab === 'desired'">Showing <b>Desired Draft</b>: Formatted strictly according to your prompt instructions.</span>
                   <span x-show="activeDraftTab === 'hybrid'">Showing <b>Hybrid Draft</b>: Synthesized combination of email context and your prompt requirements.</span>
-                  <span x-show="customGuidance" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                    ✨ Grammarly Refined
-                  </span>
                 </div>
                 <span class="text-slate-400 font-mono text-[10px]" x-text="`${currentDraftText.length} chars`"></span>
               </div>
