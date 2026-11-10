@@ -18,6 +18,7 @@
 ---
 
 ## 📑 Table of Contents
+- **📘 [Detailed Dataset & System Architecture Specification (BMSCE AIML Lab)](./DATASET_AND_SYSTEM_ARCHITECTURE.md)**
 1. [Executive Summary & Abstract](#1-executive-summary--abstract)
 2. [Problem Statement & Motivation](#2-problem-statement--motivation)
 3. [Key Architectural Innovations](#3-key-architectural-innovations)
