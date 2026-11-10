@@ -10,7 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script>
@@ -18,7 +18,7 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'sans-serif'],
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"SF Pro Display"', '"Segoe UI"', 'Roboto', 'sans-serif'],
             mono: ['"JetBrains Mono"', 'monospace'],
           }
         }
@@ -26,6 +26,14 @@
     }
   </script>
   <style>
+    body {
+      letter-spacing: -0.012em;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      letter-spacing: -0.022em;
+    }
     /* Clean Apple-style scrollbars */
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -79,8 +87,10 @@
 
       <!-- Foundation Model Indicator -->
       <div class="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span x-text="modelInfo ? modelInfo.badge : '⚡ Qwen 2.5 Coder (Local Ollama)'"></span>
+        <svg class="w-3.5 h-3.5 text-amber-500 fill-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span x-text="modelInfo ? (modelInfo.badge || '').replace(/^[\u26a1\s]+/, '') : 'Qwen 2.5 Coder (Local Ollama)'"></span>
       </div>
 
       <!-- Quick Metrics -->
@@ -145,13 +155,16 @@
 
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-left space-y-1.5 text-xs text-slate-600">
         <div class="flex items-center gap-2 font-semibold text-slate-800">
-          <span class="text-emerald-600 font-bold">✓</span> Least-Privilege Scopes (Read-only + Drafts)
+          <svg class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Least-Privilege Scopes (Read-only + Drafts)</span>
         </div>
         <div class="flex items-center gap-2 font-semibold text-slate-800">
-          <span class="text-emerald-600 font-bold">✓</span> Zero Auto-Send Guarantee
+          <svg class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Zero Auto-Send Guarantee</span>
         </div>
         <div class="flex items-center gap-2 font-semibold text-slate-800">
-          <span class="text-emerald-600 font-bold">✓</span> 100% Server-Side Processing
+          <svg class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>100% Server-Side Processing</span>
         </div>
       </div>
 
@@ -353,7 +366,11 @@
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-bold text-slate-900 truncate max-w-[190px]" x-text="em.sender_clean"></span>
               <div class="flex items-center gap-1">
-                <button @click.stop="toggleStar(em.id)" class="text-slate-300 hover:text-amber-500 text-xs" :class="isStarred(em.id) ? 'text-amber-500' : ''">★</button>
+                <button @click.stop="toggleStar(em.id)" class="text-slate-300 hover:text-amber-500 transition p-0.5" title="Star email">
+                  <svg class="w-3.5 h-3.5 transition-colors" :class="isStarred(em.id) ? 'fill-amber-400 stroke-amber-500 text-amber-500' : 'fill-none stroke-slate-300 group-hover:stroke-slate-400'" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </button>
                 <span class="text-[10px] font-mono text-slate-400" x-text="formatDate(em.date)"></span>
               </div>
             </div>
@@ -414,13 +431,19 @@
 
             <div class="flex items-center gap-1.5 flex-shrink-0">
               <button @click="selectedEmail && toggleStar(selectedEmail.id)" title="Star (S)" 
-                      class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold hover:bg-slate-50 transition" 
-                      :class="selectedEmail && isStarred(selectedEmail.id) ? 'text-amber-500 bg-amber-50 border-amber-200' : 'text-slate-600'">
-                ★ Star
+                      class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold hover:bg-slate-50 transition flex items-center gap-1.5" 
+                      :class="selectedEmail && isStarred(selectedEmail.id) ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-600'">
+                <svg class="w-3.5 h-3.5 transition-colors" :class="selectedEmail && isStarred(selectedEmail.id) ? 'fill-amber-400 stroke-amber-500 text-amber-500' : 'fill-none stroke-current'" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span>Star</span>
               </button>
               <button @click="showFocusModal = true" title="Full Screen (F)" 
-                      class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1">
-                <span>⛶ Focus</span>
+                      class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+                <span>Focus</span>
               </button>
               <button @click="copyBodyText()" 
                       class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
@@ -446,12 +469,17 @@
 
               <template x-if="selectedEmail && selectedEmail.insights && selectedEmail.insights.domain_verified">
                 <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1 flex-shrink-0 whitespace-nowrap">
-                  <span>✓</span> Verified
+                  <svg class="w-3 h-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>Verified</span>
                 </span>
               </template>
 
-              <span class="text-[10px] text-slate-400 font-mono whitespace-nowrap flex-shrink-0 hidden sm:inline" 
-                    x-text="selectedEmail && selectedEmail.insights ? `⏱ ${selectedEmail.insights.reading_time}` : ''"></span>
+              <template x-if="selectedEmail && selectedEmail.insights && selectedEmail.insights.reading_time">
+                <span class="text-[10px] text-slate-400 font-mono whitespace-nowrap flex items-center gap-1 flex-shrink-0 hidden sm:inline-flex">
+                  <svg class="w-3 h-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span x-text="selectedEmail.insights.reading_time"></span>
+                </span>
+              </template>
               <span class="text-slate-400 font-mono text-[11px] whitespace-nowrap flex-shrink-0" x-text="selectedEmail ? formatDate(selectedEmail.date) : ''"></span>
             </div>
 
@@ -579,16 +607,20 @@
               <div class="flex items-center gap-2">
                 <span x-show="deepAnalyzing || generatingDraft" class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold animate-pulse flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
-                  Qwen 2.5 Coder drafting...
+                  <span>Qwen 2.5 Coder drafting...</span>
                 </span>
                 <span x-show="!deepAnalyzing && !generatingDraft" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-mono font-medium flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  <span x-text="modelInfo.badge || '⚡ Qwen 2.5 Coder'"></span>
+                  <svg class="w-3.5 h-3.5 text-amber-500 fill-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                  <span x-text="(modelInfo.badge || 'Qwen 2.5 Coder').replace(/^[\u26a1\s]+/, '')"></span>
                 </span>
                 <button @click="showRagDetails = !showRagDetails" 
-                        class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-blue-700 hover:bg-slate-50 flex items-center gap-1 transition">
-                  <span>RAG Style</span>
-                  <span x-text="showRagDetails ? '▲' : '▼'"></span>
+                        class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-blue-700 hover:bg-slate-50 flex items-center gap-1.5 transition">
+                  <span>RAG Context</span>
+                  <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="showRagDetails ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </button>
               </div>
             </div>
@@ -624,8 +656,8 @@
                     <div>
                       <div class="font-bold text-slate-800 text-xs flex items-center justify-between">
                         <span x-text="chip.label"></span>
-                        <span class="text-blue-600 font-bold" x-show="activeChipId === chip.id">✓</span>
-                        <span class="text-slate-400 text-[10px]" x-show="activeChipId !== chip.id">→</span>
+                        <svg class="w-3.5 h-3.5 text-blue-600 flex-shrink-0" x-show="activeChipId === chip.id" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <svg class="w-3 h-3 text-slate-400 flex-shrink-0" x-show="activeChipId !== chip.id" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                       </div>
                       <p class="text-[11px] text-slate-500 mt-1 leading-snug" x-text="chip.desc"></p>
                     </div>
@@ -638,8 +670,8 @@
             <div class="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50 border border-blue-200/80 rounded-2xl p-4 shadow-2xs space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                    ✦
+                  <div class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
                   </div>
                   <div>
                     <h4 class="text-xs font-extrabold text-slate-900 tracking-tight">Personalized Prompt Studio</h4>
@@ -660,15 +692,15 @@
                          @input.debounce.500ms="onLivePromptInput()"
                          class="w-full bg-white border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 transition shadow-xs focus:outline-none pr-8">
                   <button x-show="customGuidance" @click="customGuidance = ''; regenerateReply()" title="Clear prompt"
-                          class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs">
-                    ✕
+                          class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 rounded transition">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                   </button>
                 </div>
                 <button @click="applyCustomGuidance(false)" :disabled="generatingDraft || !customGuidance.trim()"
                         class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm shadow-blue-500/20 disabled:opacity-50 flex-shrink-0">
                   <span x-show="!generatingDraft" class="flex items-center gap-1.5">
                     <span>Send Prompt</span>
-                    <span class="text-[11px]">➔</span>
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                   </span>
                   <span x-show="generatingDraft" class="flex items-center gap-1.5">
                     <span>Applying...</span>
@@ -680,24 +712,29 @@
               <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Quick Starters:</span>
                 <button @click="setPromptPreset('Ask the sender to explain the issue properly and provide error logs.')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
-                  🔍 Explain Issue & Share Logs
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
+                  <svg class="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <span>Explain Issue & Share Logs</span>
                 </button>
                 <button @click="setPromptPreset('Available only after 5:00 PM due to college CIE examinations; please share meeting credentials.')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
-                  🕒 Available after 5 PM (College CIE)
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
+                  <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>Available after 5 PM (College CIE)</span>
                 </button>
                 <button @click="setPromptPreset('Could you please share the Zoom or Google Meet link and session agenda?')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
-                  🔗 Request Zoom / Meet Link
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
+                  <svg class="w-3.5 h-3.5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                  <span>Request Zoom / Meet Link</span>
                 </button>
                 <button @click="setPromptPreset('Request a 3-day extension to finalize and verify deliverables with project mentors.')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
-                  ⏳ Request 3-Day Grace Period
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
+                  <svg class="w-3.5 h-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>Request 3-Day Grace Period</span>
                 </button>
                 <button @click="setPromptPreset('Politely decline due to intense academic exam schedule at BMSCE, but stay connected.')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
-                  🛑 Decline due to Exams
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition flex items-center gap-1.5 shadow-2xs">
+                  <svg class="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                  <span>Decline due to Exams</span>
                 </button>
               </div>
             </div>
@@ -710,21 +747,24 @@
                   <button @click="switchDraftTab('suggested')" 
                           class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
                           :class="activeDraftTab === 'suggested' ? 'bg-white text-blue-700 shadow-xs ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'">
-                    <span>✨ Suggested</span>
+                    <svg class="w-3.5 h-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
+                    <span>Suggested</span>
                     <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(AI Autonomous)</span>
                   </button>
 
                   <button @click="switchDraftTab('desired')" 
                           class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
                           :class="activeDraftTab === 'desired' ? 'bg-white text-purple-700 shadow-xs ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'">
-                    <span>🎯 Desired</span>
+                    <svg class="w-3.5 h-3.5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                    <span>Desired</span>
                     <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(Your Prompt)</span>
                   </button>
 
                   <button @click="switchDraftTab('hybrid')" 
                           class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
                           :class="activeDraftTab === 'hybrid' ? 'bg-white text-emerald-700 shadow-xs ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900'">
-                    <span>⚡ Hybrid</span>
+                    <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    <span>Hybrid</span>
                     <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(Suggested + Desired)</span>
                   </button>
                 </div>
@@ -773,7 +813,9 @@
               <div class="flex items-center gap-2">
                 <button @click="copyDraftToClipboard()" :disabled="!currentDraftText.trim()" title="Copy (C)"
                         class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 transition">
-                  <span x-text="draftCopied ? '✓ Copied' : 'Copy (C)'"></span>
+                  <svg x-show="draftCopied" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <svg x-show="!draftCopied" class="w-3.5 h-3.5 text-slate-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span x-text="draftCopied ? 'Copied' : 'Copy (C)'"></span>
                 </button>
 
                 <button @click="saveDraft()" :disabled="savingDraft || !currentDraftText.trim()" title="Save Draft (D)"
@@ -796,7 +838,7 @@
   </main>
 
   <!-- ===================================================================== -->
-  <!-- MODAL: FULL-SCREEN FOCUS MODE (⛶ / F) -->
+  <!-- MODAL: FULL-SCREEN FOCUS MODE (Focus / F) -->
   <!-- ===================================================================== -->
   <div x-show="showFocusModal" class="fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
     <div @click.away="showFocusModal = false" class="bg-white border border-slate-200 rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
@@ -804,8 +846,8 @@
       <!-- Focus Header -->
       <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-white flex-shrink-0">
         <div class="flex items-center gap-3">
-          <button @click="showFocusModal = false" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
-            ✕
+          <button @click="showFocusModal = false" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition" title="Close Focus Mode (Esc)">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
           <div>
             <h2 class="text-base font-extrabold text-slate-900" x-text="selectedEmail ? selectedEmail.subject : ''"></h2>
@@ -883,7 +925,9 @@
           <div class="w-6 h-6 rounded bg-slate-900 text-white flex items-center justify-center font-mono text-xs font-bold">?</div>
           <h3 class="font-bold text-slate-900 text-sm">Superhuman Keyboard Shortcuts</h3>
         </div>
-        <button @click="showShortcutsModal = false" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+        <button @click="showShortcutsModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition" title="Close">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
 
       <div class="space-y-2 text-xs">
@@ -928,7 +972,9 @@
     <div @click.away="showBenchModal = false" class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl p-6 space-y-4 shadow-xl">
       <div class="flex justify-between items-center border-b pb-3">
         <h3 class="font-bold text-slate-900">AIML Skill Lab Benchmarks</h3>
-        <button @click="showBenchModal = false" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+        <button @click="showBenchModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition" title="Close">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div class="grid grid-cols-3 gap-3 text-center">
         <div class="bg-slate-50 p-3 rounded-lg border"><div class="text-xs text-slate-500 font-bold">ACCURACY</div><div class="text-xl font-extrabold text-blue-600">95.0%</div></div>
@@ -943,7 +989,9 @@
     <div @click.away="showSandboxModal = false" class="bg-white border border-slate-200 rounded-2xl w-full max-w-xl p-6 space-y-3 shadow-xl">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-slate-900">Live Custom Sandbox</h3>
-        <button @click="showSandboxModal = false" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+        <button @click="showSandboxModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition" title="Close">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <input type="text" x-model="sbSender" placeholder="Sender" class="w-full border p-2 rounded text-xs">
       <input type="text" x-model="sbSubject" placeholder="Subject" class="w-full border p-2 rounded text-xs">
@@ -965,7 +1013,7 @@
     function mailApp() {
       return {
         auth: { connected: false, email: '' },
-        modelInfo: { badge: '⚡ Qwen 2.5 Coder (Local Ollama)' },
+        modelInfo: { badge: 'Qwen 2.5 Coder (Local Ollama)' },
         inboxMode: 'live',
         emails: [],
         selectedEmail: null,
@@ -1010,6 +1058,7 @@
           if (this.emails.length > 0) {
             this.selectEmail(this.emails[0]);
           }
+          this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           // Register Superhuman Keyboard Shortcuts
           window.addEventListener('keydown', (e) => {
@@ -1383,7 +1432,7 @@
             this.activeDraftTab = 'hybrid';
             this.currentDraftText = this.draftTriple.hybrid;
             if (!silent) {
-              this.showToast('✨ Grammarly-polished drafts ready!');
+              this.showToast('Polished drafts ready!');
             }
           } catch(e) {
             console.error(e);

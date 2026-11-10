@@ -63,7 +63,7 @@ def get_active_model_info() -> Dict[str, Any]:
             "connected": True,
             "provider": "gemini",
             "model_name": "Google Gemini 1.5 Flash",
-            "badge": "⚡ Google Gemini Cloud",
+            "badge": "Google Gemini Cloud",
             "is_local": False
         }
 
@@ -73,7 +73,7 @@ def get_active_model_info() -> Dict[str, Any]:
             "connected": True,
             "provider": "ollama",
             "model_name": DEFAULT_LOCAL_MODEL,
-            "badge": "⚡ Qwen 2.5 Coder (Local Ollama)",
+            "badge": "Qwen 2.5 Coder (Local Ollama)",
             "is_local": True
         }
 
@@ -81,7 +81,7 @@ def get_active_model_info() -> Dict[str, Any]:
         "connected": True,
         "provider": "heuristic_fallback",
         "model_name": "Rule Heuristics",
-        "badge": "⚡ Rule-Based Engine (Ollama Standby)",
+        "badge": "Rule-Based Engine (Ollama Standby)",
         "is_local": True
     }
 
