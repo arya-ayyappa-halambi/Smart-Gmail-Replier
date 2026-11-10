@@ -431,11 +431,17 @@
 
             <!-- Toolbar Controls -->
             <div class="flex items-center gap-1.5 flex-shrink-0">
-              <!-- Intent & Confidence Tag -->
-              <div class="hidden sm:flex items-center gap-1 mr-1">
+              <!-- Intent & Sub-Topic Badge -->
+              <div class="hidden sm:flex items-center gap-1.5 mr-1">
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-2xs"
                       :class="selectedEmail && selectedEmail.analysis ? getIntentBadgeClass(selectedEmail.analysis.intent) : ''"
                       x-text="selectedEmail && selectedEmail.analysis ? selectedEmail.analysis.intent : ''"></span>
+                <template x-if="selectedEmail && selectedEmail.sub_topic">
+                  <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    <span x-text="`${selectedEmail.sub_topic} • ${selectedEmail.incoming_tone || 'Professional'}`"></span>
+                  </span>
+                </template>
                 <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-600"
                       x-text="selectedEmail && selectedEmail.analysis ? `${Math.round(selectedEmail.analysis.intent_confidence*100)}%` : ''"></span>
               </div>
@@ -1138,6 +1144,8 @@
               if (this.selectedEmail && this.selectedEmail.id === em.id) {
                 if (data.insights) this.selectedEmail.insights = data.insights;
                 if (data.suggestion_chips) this.selectedEmail.suggestion_chips = data.suggestion_chips;
+                if (data.sub_topic) this.selectedEmail.sub_topic = data.sub_topic;
+                if (data.incoming_tone) this.selectedEmail.incoming_tone = data.incoming_tone;
                 if (data.reply) {
                   this.selectedEmail.suggested_draft = data.reply;
                   this.currentDraftText = data.reply;
@@ -1162,6 +1170,7 @@
           if (!this.selectedEmail) return;
           this.generatingDraft = true;
           try {
+            const activeChip = (this.selectedEmail.suggestion_chips || []).find(c => c.id === this.activeChipId);
             const res = await fetch('/api/generate-reply', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -1172,6 +1181,8 @@
                 intent: this.selectedEmail.analysis ? this.selectedEmail.analysis.intent : 'Action Required',
                 tone: this.activeTone,
                 variant: this.activeChipId,
+                chip_label: activeChip ? activeChip.label : '',
+                chip_desc: activeChip ? activeChip.desc : '',
                 custom_instruction: this.customGuidance,
                 checked_action_items: this.checkedActionItems
               })
@@ -1190,8 +1201,9 @@
           await this.regenerateReply();
         },
 
-        async applySuggestionVariant(variantId) {
-          this.activeChipId = variantId;
+        async applySuggestionVariant(chip) {
+          const chipId = typeof chip === 'object' ? chip.id : chip;
+          this.activeChipId = chipId;
           await this.regenerateReply();
           this.showToast('Updated draft with selected persona!');
         },

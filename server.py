@@ -121,6 +121,8 @@ class GenerateReplyRequest(BaseModel):
     intent: Optional[str] = None
     tone: Optional[str] = "Professional"
     variant: Optional[str] = "confirm"
+    chip_label: Optional[str] = ""
+    chip_desc: Optional[str] = ""
     custom_instruction: Optional[str] = ""
     checked_action_items: Optional[List[str]] = []
 
@@ -208,48 +210,16 @@ def extract_clean_name(sender_str: str) -> str:
 # -----------------------------------------------------------------------------
 # 4 Strategy Personas & Human Reply Synthesis
 # -----------------------------------------------------------------------------
-def get_suggestion_chips(intent: str) -> List[Dict[str, str]]:
-    """Returns 4 multi-persona strategic response variants tailored to the email category."""
-    if intent == "Academic/Faculty":
-        return [
-            {"id": "confirm", "label": "Confirm & Deliverables Ready", "desc": "Acknowledge project viva/review & slides"},
-            {"id": "inquire", "label": "Clarify Office Hours & Venue", "desc": "Ask to review slides during office hours"},
-            {"id": "reschedule", "label": "Request Afternoon Slot", "desc": "Polite CIE examination overlap reschedule"},
-            {"id": "decline", "label": "Formal Deferral Note", "desc": "Polite notice requesting alternate week slot"}
-        ]
-    elif intent == "Internship/Recruiter":
-        return [
-            {"id": "confirm", "label": "Confirm Friday 4 PM Interview", "desc": "Accept 60-minute technical discussion"},
-            {"id": "inquire", "label": "Inquire Tech Stack & Team Focus", "desc": "Ask for engineering scope details"},
-            {"id": "reschedule", "label": "Propose Alternate Time Slot", "desc": "Suggest Monday/Tuesday afternoon window"},
-            {"id": "decline", "label": "Decline & Stay in Touch", "desc": "Express interest for Summer 2026 cycle"}
-        ]
-    elif intent == "Event/Club":
-        return [
-            {"id": "confirm", "label": "Confirm Hands-on Workshop", "desc": "Confirm speaker attendance & starter Colabs"},
-            {"id": "inquire", "label": "Ask Venue & Projector Logistics", "desc": "Inquire HDMI/lab network access in Lab 3"},
-            {"id": "reschedule", "label": "Propose Alternate Weekend", "desc": "Reschedule due to university lab CIEs"},
-            {"id": "decline", "label": "Polite Decline for this Edition", "desc": "Unable to participate this semester"}
-        ]
-    elif intent == "Action Required":
-        return [
-            {"id": "confirm", "label": "Task Resolved & Fixed", "desc": "Confirm diagnosis & remediation complete"},
-            {"id": "inquire", "label": "Request Detailed Error Trace", "desc": "Ask for latest service stack traces"},
-            {"id": "reschedule", "label": "In Progress / Verifying Fix", "desc": "Actively diagnosing GPU node logs"},
-            {"id": "decline", "label": "Acknowledge & Flag Out of Scope", "desc": "Verified not impacting primary pipeline"}
-        ]
-    else:  # Newsletters & Updates
-        return [
-            {"id": "confirm", "label": "Unsubscribe & Remove", "desc": "Request removal from marketing digest"},
-            {"id": "inquire", "label": "Request Account Data & Info", "desc": "Ask for subscription preferences"},
-            {"id": "reschedule", "label": "Acknowledge & Archive", "desc": "Polite confirmation of receipt"},
-            {"id": "decline", "label": "General Courtesy Note", "desc": "Brief professional acknowledgment"}
-        ]
+def get_suggestion_chips(intent: str, subject: str = "", body: str = "", sender: str = "") -> List[Dict[str, str]]:
+    """Returns 4 multi-persona strategic response variants tailored specifically to the email's sub-topic."""
+    meta = llm_engine.detect_sub_topic_and_tone(subject, body, sender, intent)
+    return llm_engine.generate_dynamic_suggestion_chips(meta["sub_topic"], subject, intent)
 
 
 def fast_extract_insights(subject: str, sender: str, body: str, intent: str) -> Dict[str, Any]:
     """Instant heuristic insights for initial list sync (<0.05ms per email)."""
-    return llm_engine._generate_heuristic_insights(subject, sender, body, intent)
+    meta = llm_engine.detect_sub_topic_and_tone(subject, body, sender, intent)
+    return llm_engine._generate_heuristic_insights(subject, sender, body, intent, meta["sub_topic"])
 
 
 def fast_compose_reply(
@@ -261,14 +231,31 @@ def fast_compose_reply(
     variant: str = "confirm",
 ) -> Dict[str, Any]:
     """Instant heuristic draft for initial list sync (<0.05ms per email)."""
+    meta = llm_engine.detect_sub_topic_and_tone(subject, body, sender, intent)
+    chips = llm_engine.generate_dynamic_suggestion_chips(meta["sub_topic"], subject, intent)
+    active_chip = next((c for c in chips if c["id"] == variant), chips[0])
     is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
-    reply_text = llm_engine._generate_heuristic_reply(sender, subject, body, intent, tone, variant, "", [])
+    reply_text = llm_engine._generate_heuristic_reply(
+        sender=sender,
+        subject=subject,
+        body=body,
+        intent=intent,
+        sub_topic=meta["sub_topic"],
+        tone=tone,
+        variant=variant,
+        strategy_label=active_chip["label"],
+        strategy_desc=active_chip["desc"],
+        custom_instruction="",
+        checked_action_items=[]
+    )
     return {
         "reply": reply_text,
         "auto_reply_recommended": not is_promo,
-        "reason": f"Classified as {intent} with {tone.lower()} tone under {variant} strategy.",
+        "reason": f"Topic '{meta['sub_topic_label']}' ({meta['incoming_tone']}) under {active_chip['label']} strategy.",
         "suggested_action": "Archive / Skip Reply" if is_promo else "Review & Save to Gmail Drafts",
-        "suggestion_chips": get_suggestion_chips(intent),
+        "suggestion_chips": chips,
+        "sub_topic": meta["sub_topic_label"],
+        "incoming_tone": meta["incoming_tone"]
     }
 
 
@@ -289,9 +276,14 @@ def compose_smart_reply(
     variant: str = "confirm",
     custom_instruction: str = "",
     checked_action_items: Optional[List[str]] = None,
+    chip_label: Optional[str] = "",
+    chip_desc: Optional[str] = "",
 ) -> Dict[str, Any]:
     """Composes a tailored, context-aware draft reply across 4 distinct strategic personas using qwen2.5-coder:7b."""
     is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
+    meta = llm_engine.detect_sub_topic_and_tone(subject, body, sender, intent)
+    chips = llm_engine.generate_dynamic_suggestion_chips(meta["sub_topic"], subject, intent)
+    active_chip = next((c for c in chips if c["id"] == variant), chips[0])
 
     reply_text = llm_engine.generate_persona_reply_with_llm(
         sender=sender,
@@ -302,14 +294,18 @@ def compose_smart_reply(
         variant=variant,
         custom_instruction=custom_instruction,
         checked_action_items=checked_action_items,
+        chip_label=chip_label or active_chip["label"],
+        chip_desc=chip_desc or active_chip["desc"],
     )
 
     return {
         "reply": reply_text,
         "auto_reply_recommended": not is_promo,
-        "reason": f"Classified as {intent} with {tone.lower()} tone under {variant} strategy.",
+        "reason": f"Topic '{meta['sub_topic_label']}' ({meta['incoming_tone']}) under {active_chip['label']} strategy.",
         "suggested_action": "Archive / Skip Reply" if is_promo else "Review & Save to Gmail Drafts",
-        "suggestion_chips": get_suggestion_chips(intent),
+        "suggestion_chips": chips,
+        "sub_topic": meta["sub_topic_label"],
+        "incoming_tone": meta["incoming_tone"],
     }
 
 
@@ -502,6 +498,8 @@ def get_emails(
             "suppression_reason": reply_meta.get("reason"),
             "suggested_draft": reply_meta["reply"],
             "suggestion_chips": reply_meta.get("suggestion_chips", []),
+            "sub_topic": reply_meta.get("sub_topic", "General"),
+            "incoming_tone": reply_meta.get("incoming_tone", "Professional"),
         })
 
     response_payload = {
@@ -534,6 +532,8 @@ def deep_analyze_email(req: GenerateReplyRequest):
     variant = req.variant or "confirm"
     custom_instruction = req.custom_instruction or ""
     checked = req.checked_action_items or []
+    chip_label = req.chip_label or ""
+    chip_desc = req.chip_desc or ""
 
     result = llm_engine.unified_email_reasoning(
         sender=req.sender,
@@ -544,6 +544,8 @@ def deep_analyze_email(req: GenerateReplyRequest):
         variant=variant,
         custom_instruction=custom_instruction,
         checked_action_items=checked,
+        chip_label=chip_label,
+        chip_desc=chip_desc,
     )
 
     is_promo = intent in ["Promotional/Spam", "Bots & Promos"]
@@ -551,7 +553,9 @@ def deep_analyze_email(req: GenerateReplyRequest):
         "insights": result["insights"],
         "reply": result["reply"],
         "auto_reply_recommended": not is_promo,
-        "suggestion_chips": get_suggestion_chips(intent),
+        "suggestion_chips": result["suggestion_chips"],
+        "sub_topic": result.get("sub_topic", "General"),
+        "incoming_tone": result.get("incoming_tone", "Professional"),
     }
 
 
@@ -560,10 +564,24 @@ def generate_reply_api(req: GenerateReplyRequest):
     """Generates an updated response with custom intent, tone, suggestion chip variant, or custom guidance."""
     intent = req.intent or "Action Required"
     tone = req.tone or "Professional"
-    variant = req.variant or "default"
+    variant = req.variant or "confirm"
     custom_instruction = req.custom_instruction or ""
     checked = req.checked_action_items or []
-    res = compose_smart_reply(req.sender, req.subject, req.body, intent, tone, variant, custom_instruction, checked)
+    chip_label = req.chip_label or ""
+    chip_desc = req.chip_desc or ""
+
+    res = compose_smart_reply(
+        sender=req.sender,
+        subject=req.subject,
+        body=req.body,
+        intent=intent,
+        tone=tone,
+        variant=variant,
+        custom_instruction=custom_instruction,
+        checked_action_items=checked,
+        chip_label=chip_label,
+        chip_desc=chip_desc,
+    )
     return res
 
 
