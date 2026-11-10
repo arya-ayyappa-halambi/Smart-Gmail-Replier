@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>MailMind AI — Executive Inbox Client</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -639,22 +642,23 @@
                 </span>
               </div>
 
-              <!-- Expansive Text Input -->
+              <!-- Expansive Text Input with Live Grammarly Debounce -->
               <div class="flex flex-col sm:flex-row gap-2">
                 <div class="relative flex-1">
                   <input type="text" x-model="customGuidance" 
-                         placeholder="E.g. Say that I can only join after 5 PM because of college, and ask for the Zoom link..." 
-                         @keyup.enter="applyCustomGuidance()"
+                         placeholder="E.g. Ask the sender to explain the issue properly, or Say that I can join after 5 PM..." 
+                         @keyup.enter="applyCustomGuidance(false)"
+                         @input.debounce.500ms="onLivePromptInput()"
                          class="w-full bg-white border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 transition shadow-xs focus:outline-none pr-8">
                   <button x-show="customGuidance" @click="customGuidance = ''; regenerateReply()" title="Clear prompt"
                           class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs">
                     ✕
                   </button>
                 </div>
-                <button @click="applyCustomGuidance()" :disabled="generatingDraft || !customGuidance.trim()"
+                <button @click="applyCustomGuidance(false)" :disabled="generatingDraft || !customGuidance.trim()"
                         class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 flex-shrink-0">
                   <span x-show="!generatingDraft">Generate 3 Drafts</span>
-                  <span x-show="generatingDraft">Synthesizing...</span>
+                  <span x-show="generatingDraft">Polishing...</span>
                   <span class="text-[10px] opacity-75 font-mono" x-show="!generatingDraft">↵</span>
                 </button>
               </div>
@@ -662,6 +666,10 @@
               <!-- Quick Prompt Preset Chips -->
               <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Quick Starters:</span>
+                <button @click="setPromptPreset('Ask the sender to explain the issue properly and provide error logs.')"
+                        class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
+                  🔍 Explain Issue & Share Logs
+                </button>
                 <button @click="setPromptPreset('Available only after 5:00 PM due to college CIE examinations; please share meeting credentials.')"
                         class="text-[11px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition">
                   🕒 Available after 5 PM (College CIE)
@@ -727,10 +735,13 @@
 
               <!-- Active Perspective Info Callout -->
               <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
-                <div>
+                <div class="flex items-center gap-2">
                   <span x-show="activeDraftTab === 'suggested'">Showing <b>Suggested Draft</b>: Context-aware response based on active persona.</span>
                   <span x-show="activeDraftTab === 'desired'">Showing <b>Desired Draft</b>: Formatted strictly according to your prompt instructions.</span>
                   <span x-show="activeDraftTab === 'hybrid'">Showing <b>Hybrid Draft</b>: Synthesized combination of email context and your prompt requirements.</span>
+                  <span x-show="customGuidance" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                    ✨ Grammarly Refined
+                  </span>
                 </div>
                 <span class="text-slate-400 font-mono text-[10px]" x-text="`${currentDraftText.length} chars`"></span>
               </div>
@@ -1322,7 +1333,17 @@
           this.showToast('Updated draft with selected persona!');
         },
 
-        async applyCustomGuidance() {
+        async onLivePromptInput() {
+          if (!this.selectedEmail) return;
+          if (!this.customGuidance.trim()) {
+            this.activeDraftTab = 'suggested';
+            this.currentDraftText = this.draftTriple.suggested;
+            return;
+          }
+          await this.applyCustomGuidance(true);
+        },
+
+        async applyCustomGuidance(silent = false) {
           if (!this.selectedEmail || !this.customGuidance.trim()) return;
           this.generatingDraft = true;
           try {
@@ -1351,7 +1372,9 @@
             };
             this.activeDraftTab = 'hybrid';
             this.currentDraftText = this.draftTriple.hybrid;
-            this.showToast('Generated 3-Way Drafts (Hybrid active)!');
+            if (!silent) {
+              this.showToast('✨ Grammarly-polished drafts ready!');
+            }
           } catch(e) {
             console.error(e);
           } finally {

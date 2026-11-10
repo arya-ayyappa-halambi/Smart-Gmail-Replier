@@ -428,7 +428,14 @@ def unified_email_reasoning(
 
     custom_note = ""
     if custom_instruction.strip():
-        custom_note = f"\nUser steering instruction: Incorporate this specific guidance: '{custom_instruction.strip()}'\n"
+        custom_note = (
+            f"\nUSER STEERING INSTRUCTION: '{custom_instruction.strip()}'\n"
+            "GRAMMARLY CO-PILOT RULE: The user provided a raw steering prompt (e.g. 'ask the sender to explain the issue properly'). "
+            "NEVER echo or output the raw instruction or verbatim commit hashes! "
+            "Translate the instruction into fluent, courteous, second-person professional email sentences addressed directly to the sender. "
+            "For 'desired': write a clean, complete email fulfilling this request directly. "
+            "For 'hybrid': weave the email's factual context/deliverables with this request seamlessly.\n"
+        )
 
     prompt = (
         "You are an AI email assistant drafting authentic, highly context-aware responses for Arya Ayyappa Halambi.\n"
@@ -757,7 +764,7 @@ def _generate_heuristic_reply(
     checked_action_items: List[str]
 ) -> str:
     clean_sender = _clean_sender_name(sender)
-    clean_sub = re.sub(r'^(Re:\s*|Fwd:\s*)+', '', subject, flags=re.IGNORECASE).strip()
+    clean_sub = _clean_subject_for_prose(subject)
     is_academic = intent == "Academic/Faculty"
     entities = _extract_body_entities(body)
 
@@ -1141,19 +1148,91 @@ def _generate_heuristic_reply(
     return f"{salutation}\n\n{body_msg}\n\n{sig}"
 
 
-def _format_user_prompt_into_body(prompt_raw: str, clean_sub: str) -> str:
-    """Transforms conversational user instructions into authentic email paragraphs."""
+def _clean_subject_for_prose(subject: str) -> str:
+    """Cleans noisy automated subjects (e.g. Git commit hashes, repo brackets) into natural prose."""
+    if not subject:
+        return "your message"
+    s = re.sub(r'^(Re:\s*|Fwd:\s*)+', '', subject, flags=re.IGNORECASE).strip()
+    # Strip git commit hashes in parentheses e.g. (7444e28)
+    s = re.sub(r'\([0-9a-f]{6,40}\)', '', s, flags=re.IGNORECASE).strip()
+    # Strip long git commit hashes bare e.g. 7444e28
+    s = re.sub(r'\b[0-9a-f]{7,40}\b', '', s, flags=re.IGNORECASE).strip()
+    # Strip bracketed repository names or tags like [arya-ayyappa-halambi/Vuln_Pilot]
+    s = re.sub(r'\[.*?\]', '', s).strip()
+    # Check for specific CI/CD phrases
+    if re.search(r'\b(pr run failed|workflow run failed|workflow run|run failed|build failed)\b', s, re.IGNORECASE):
+        return "the recent PR workflow run failure"
+    if re.search(r'\b(pull request|pr)\b', s, re.IGNORECASE):
+        return "the pull request updates"
+    # If the remaining subject is still very long and contains complex CI parameter flags:
+    if len(s) > 50 and any(sep in s for sep in [" - ", ": ", " | "]):
+        s = re.split(r'(\s+-\s+|\s*:\s*|\s*\|\s*)', s)[0].strip()
+    s = re.sub(r'\s+', ' ', s).strip()
+    return s if s else "your message"
+
+
+def _grammarly_transform_instruction(prompt_raw: str, clean_sub: str, clean_sender: str, sub_topic: str) -> str:
+    """
+    Grammarly-grade intent transformer: converts raw user steering prompts
+    into authentic, courteous, highly articulate professional email sentences.
+    Never outputs raw instructions like 'Ask the sender to explain...' or commit hashes.
+    """
     raw = prompt_raw.strip()
     if not raw:
         return f"Regarding {clean_sub}, please let me know how you would like to proceed."
 
-    # If user already wrote a full letter, preserve it
+    # If the user already wrote a full email, return it intact
     if raw.lower().startswith(("dear ", "hi ", "hello ", "greetings")):
         return raw
 
-    # Convert common 3rd-person steering phrases into professional 1st-person email prose
+    lower_p = raw.lower()
+
+    # 1. Asking for explanation / details / logs (e.g. user screenshot)
+    if any(k in lower_p for k in ["explain the issue", "explain properly", "explain what went wrong", "ask them to explain", "ask the sender to explain", "provide logs", "share error trace", "more details about the error"]):
+        return (
+            f"Could you please share more details and the relevant error traces or logs regarding {clean_sub}?\n\n"
+            f"Having more context on the exact failure or error trace will help us isolate the root cause and address it promptly."
+        )
+
+    # 2. Joining after 5 PM / time window + Zoom / Meet link
+    if "after 5" in lower_p or ("5 pm" in lower_p or "5:00 pm" in lower_p):
+        has_zoom = any(k in lower_p for k in ["zoom", "meet", "link", "credentials"])
+        zoom_sentence = "\n\nCould you please share the Google Meet or Zoom link and session credentials so I can connect promptly at that time?" if has_zoom else ""
+        return (
+            f"Regarding {clean_sub}, I would like to let you know that due to ongoing college academic commitments, "
+            f"I will only be able to join after 5:00 PM.{zoom_sentence}"
+        )
+
+    # 3. Requesting meeting / Zoom link only
+    if any(k in lower_p for k in ["ask for zoom", "ask for meet", "send zoom", "send meet", "meeting link", "zoom link", "google meet link"]):
+        return (
+            f"Could you please share the Google Meet or Zoom link and meeting agenda for {clean_sub} so I can connect?"
+        )
+
+    # 4. Busy with exams / checking on Monday
+    if any(k in lower_p for k in ["busy with exams", "busy with exam", "college exams", "cie exams"]) and "monday" in lower_p:
+        return (
+            f"I am currently occupied with ongoing college CIE examinations and will not be able to address this immediately.\n\n"
+            f"I will investigate {clean_sub} thoroughly and follow up with a complete update on Monday morning."
+        )
+
+    # 5. Requesting extension / grace period
+    if any(k in lower_p for k in ["extension", "grace period", "more time", "delay", "postpone"]):
+        return (
+            f"Could we please request a brief 3-day extension regarding {clean_sub} to finalize and verify our deliverables before review?"
+        )
+
+    # 6. Politely declining due to exams / commitments
+    if any(k in lower_p for k in ["decline", "cannot attend", "pass on this", "not looking"]):
+        return (
+            f"Due to my ongoing academic semester exam schedule at BMSCE, I will have to respectfully pass on this round regarding {clean_sub}, "
+            f"but I would welcome staying in touch for future opportunities."
+        )
+
+    # 7. General conversational transformation: strip 3rd person meta-prompts
     p = raw
-    p = re.sub(r'^(?:please\s+)?(?:say|tell\s+them|let\s+them\s+know|inform\s+them)\s+(?:that\s+)?', 'I would like to let you know that ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:please\s+)?(?:say|tell\s+(?:them|the\s+sender)|let\s+(?:them|the\s+sender)\s+know|inform\s+(?:them|the\s+sender)|mention)\s+(?:that\s+)?', 'I would like to let you know that ', p, flags=re.IGNORECASE)
+    p = re.sub(r'\b(?:and\s+)?(?:please\s+)?(?:ask\s+(?:the\s+sender|them)\s+to|ask\s+to)\s+', 'Could you please ', p, flags=re.IGNORECASE)
     p = re.sub(r'\b(?:and\s+)?(?:please\s+)?(?:ask\s+for|request)\s+(?:the\s+)?', 'Could you please share the ', p, flags=re.IGNORECASE)
     p = re.sub(r'\b(?:and\s+)?(?:please\s+)?ask\s+if\s+', 'Could you please let me know if ', p, flags=re.IGNORECASE)
     p = re.sub(r'\b(?:because\s+of\s+college|due\s+to\s+college)\b', 'due to ongoing college academic commitments', p, flags=re.IGNORECASE)
@@ -1172,6 +1251,11 @@ def _format_user_prompt_into_body(prompt_raw: str, clean_sub: str) -> str:
     return f"Regarding {clean_sub}, {p}"
 
 
+def _format_user_prompt_into_body(prompt_raw: str, clean_sub: str) -> str:
+    """Compatibility wrapper calling _grammarly_transform_instruction."""
+    return _grammarly_transform_instruction(prompt_raw, clean_sub, "there", "general")
+
+
 def _generate_triple_heuristic_drafts(
     sender: str,
     subject: str,
@@ -1185,9 +1269,9 @@ def _generate_triple_heuristic_drafts(
     custom_instruction: str,
     checked_action_items: List[str]
 ) -> Dict[str, str]:
-    """Generates 3 distinct drafts: Suggested (AI Persona), Desired (User Instruction), and Hybrid (Best of Both)."""
+    """Generates 3 distinct drafts: Suggested (AI Persona), Desired (Grammarly-Polished), and Hybrid (Best of Both)."""
     clean_sender = _clean_sender_name(sender)
-    clean_sub = re.sub(r'^(Re:\s*|Fwd:\s*)+', '', subject, flags=re.IGNORECASE).strip()
+    clean_sub = _clean_subject_for_prose(subject)
     is_academic = intent == "Academic/Faculty"
     salutation = f"Dear {clean_sender}," if is_academic else f"Hi {clean_sender},"
     sig = (
@@ -1221,14 +1305,14 @@ def _generate_triple_heuristic_drafts(
             "hybrid": suggested
         }
 
-    # 2. Desired Draft: Strictly executing the user's prompt
-    desired_body = _format_user_prompt_into_body(raw_inst, clean_sub)
+    # 2. Desired Draft: Grammarly-grade rewrite of user steering instruction
+    desired_body = _grammarly_transform_instruction(raw_inst, clean_sub, clean_sender, sub_topic)
     if checked_action_items:
         items_str = "\n".join([f"• Confirmed: {item}" for item in checked_action_items])
         desired_body += f"\n\nDeliverable Checklist:\n{items_str}"
     desired = f"{salutation}\n\n{desired_body}\n\n{sig}"
 
-    # 3. Hybrid Draft: Synthesizing Contextual Anchor + User Steering Prompt
+    # 3. Hybrid Draft: Synthesizing Contextual Anchor + Grammarly-Polished Request
     suggested_paragraphs = [p.strip() for p in suggested.split("\n\n") if p.strip()]
     context_paras = [p for p in suggested_paragraphs if not p.startswith(("Dear ", "Hi ", "Best regards", "USN:", "Department", "Arya"))]
     context_anchor = context_paras[0] if context_paras else f"Thank you for contacting me regarding {clean_sub}."

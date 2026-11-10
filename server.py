@@ -82,11 +82,14 @@ async def security_and_rate_limiting_middleware(request: Request, call_next):
 
     response = await call_next(request)
 
-    # 2. Hardened Security Headers
+    # 2. Hardened Security & Anti-Stale Cache Headers
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     return response
 
 # Global in-memory cache for ultra-fast UI rendering
@@ -649,7 +652,14 @@ if STATIC_DIR.exists():
 def serve_index():
     index_file = STATIC_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(index_file)
+        return FileResponse(
+            index_file,
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
     return JSONResponse({"message": "MailMind AI Backend running."})
 
 
