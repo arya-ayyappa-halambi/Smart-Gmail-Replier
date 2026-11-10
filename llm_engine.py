@@ -443,6 +443,90 @@ def generate_dynamic_quick_starters(
     return config.get("quick_starters", SUB_TOPIC_CONFIGS["general"]["quick_starters"])
 
 
+def _is_invalid_draft(text: str) -> bool:
+    """Detects hallucinated sender-inversion, empty drafts, or third-person meta summaries."""
+    if not text or len(text.strip()) < 25:
+        return True
+    t = text.lower()
+    bad_markers = [
+        "the sender is communicating",
+        "the sender is",
+        "the sender communicated",
+        "the sender reached out",
+        "the sender has",
+        "the sender submitted",
+        "the sender shared",
+        "this email is about",
+        "the email is about",
+        "the email discusses",
+        "the email summarizes",
+        "as an ai",
+        "i cannot write",
+        "here is a draft",
+        "thank you for your interest in our",
+        "thank you for your interest in jiomart",
+        "thank you for your interest in apple",
+        "thank you for your interest in linkedin",
+        "thank you for your interest in codepen",
+        "thank you for your interest in reddit",
+        "thank you for your interest in leetcode",
+        "feel free to contact us",
+        "contact us at",
+        "please feel free to reach out to us",
+        "please feel free to contact our support",
+        "if you have any further questions",
+        "if you need any further assistance",
+        "if you have any questions or need assistance",
+        "need assistance, please let me know",
+        "further questions or need assistance",
+        "please let us know",
+        "please click here",
+        "click here",
+        "click the link",
+        "shop now",
+        "visit our website",
+        "unsubscribe, click",
+        "exclusive deals",
+        "save up to",
+        "discount codes",
+        "dear customer",
+        "dear valued customer",
+        "dear user",
+        "dear recipient",
+        "subject:"
+    ]
+    if any(b in t for b in bad_markers):
+        return True
+
+    # If the draft only has a salutation and a sign-off without substantial body sentences:
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    content_lines = [l for l in lines if not l.startswith(("Dear", "Hi", "Hello", "Best regards", "USN:", "Department", "Arya", "B.M.S."))]
+    if not content_lines or len(" ".join(content_lines)) < 18:
+        return True
+
+    return False
+
+
+def _ensure_salutation_and_signature(draft: str, sender: str, is_academic: bool) -> str:
+    """Guarantees every draft includes appropriate professional salutation and Arya signature."""
+    clean_sender = _clean_sender_name(sender)
+    salutation = f"Dear {clean_sender}," if is_academic else f"Hi {clean_sender},"
+    sig = (
+        "Best regards,\n"
+        "Arya Ayyappa Halambi\n"
+        "USN: 1BF25CS095\n"
+        "Department of Computer Science and Engineering\n"
+        "B.M.S. College of Engineering (BMSCE)"
+    ) if is_academic else "Best regards,\nArya Ayyappa Halambi"
+
+    d = draft.strip()
+    if not d.lower().startswith(("dear ", "hi ", "hello ", "greetings")):
+        d = f"{salutation}\n\n{d}"
+    if not any(k in d.lower() for k in ["best regards", "warm regards", "sincerely", "thanks and regards", "regards,"]):
+        d = f"{d}\n\n{sig}"
+    return d
+
+
 # -----------------------------------------------------------------------------
 # UNIFIED SINGLE-PASS FOUNDATION MODEL INFERENCE
 # -----------------------------------------------------------------------------
@@ -468,6 +552,7 @@ def unified_email_reasoning(
         return _INSIGHTS_CACHE[cache_key]
 
     # Detect fine-grained sub-topic & tone
+    clean_sender = _clean_sender_name(sender)
     meta = detect_sub_topic_and_tone(subject, body, sender, intent)
     sub_topic = meta["sub_topic"]
     sub_topic_label = meta["sub_topic_label"]
@@ -556,6 +641,11 @@ def unified_email_reasoning(
     prompt = (
         "You are an AI email assistant drafting authentic, highly context-aware responses for Arya Ayyappa Halambi.\n"
         "Carefully read the incoming email below. Notice specific dates, room/lab numbers, assignment names, code details, or questions.\n\n"
+        "CRITICAL ROLE CONSTRAINT:\n"
+        f"- You are Arya Ayyappa Halambi (the student recipient of the email), drafting a reply TO {clean_sender}.\n"
+        "- NEVER write from the perspective of the sender or their company (e.g. NEVER write 'Thank you for your interest in our company/newsletter' or 'feel free to contact us').\n"
+        "- NEVER write third-person summaries in drafts (e.g. NEVER write 'The sender is communicating about...').\n"
+        f"- Write authentic first-person replies from Arya to {clean_sender} ('I have reviewed...', 'Could you please...').\n\n"
         f"Incoming Email:\n"
         f"From: {sender}\n"
         f"Subject: {subject}\n"
@@ -584,9 +674,10 @@ def unified_email_reasoning(
             "model": DEFAULT_LOCAL_MODEL,
             "prompt": prompt,
             "stream": False,
+            "format": "json",
             "options": {
                 "temperature": 0.25,
-                "num_predict": 360
+                "num_predict": 550
             }
         }
         req = urllib.request.Request(
@@ -598,7 +689,7 @@ def unified_email_reasoning(
             data = json.loads(resp.read().decode("utf-8"))
             raw_text = data.get("response", "{}")
 
-            # Robust JSON extraction without requiring slow grammar CFG constraints
+            # Robust JSON extraction
             json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
             if json_match:
                 try:
@@ -613,20 +704,28 @@ def unified_email_reasoning(
             action_items = parsed.get("action_items") or fallback_insights["action_items"]
             
             # Extract suggested, desired, hybrid
-            suggested_text = (parsed.get("suggested") or parsed.get("reply") or "").strip()
-            desired_text = (parsed.get("desired") or "").strip()
-            hybrid_text = (parsed.get("hybrid") or "").strip()
+            suggested_text = (parsed.get("suggested") or parsed.get("suggested_draft") or parsed.get("reply") or "").strip()
+            desired_text = (parsed.get("desired") or parsed.get("desired_draft") or "").strip()
+            hybrid_text = (parsed.get("hybrid") or parsed.get("hybrid_draft") or "").strip()
 
             suggested_text = re.sub(r'^Subject:\s*.*?\n+', '', suggested_text, flags=re.IGNORECASE).strip()
             desired_text = re.sub(r'^Subject:\s*.*?\n+', '', desired_text, flags=re.IGNORECASE).strip()
             hybrid_text = re.sub(r'^Subject:\s*.*?\n+', '', hybrid_text, flags=re.IGNORECASE).strip()
 
-            if not suggested_text or len(suggested_text) < 30:
+            if _is_invalid_draft(suggested_text):
                 suggested_text = fallback_triple["suggested"]
-            if not desired_text or len(desired_text) < 20:
+            else:
+                suggested_text = _ensure_salutation_and_signature(suggested_text, sender, is_academic)
+
+            if _is_invalid_draft(desired_text):
                 desired_text = fallback_triple["desired"]
-            if not hybrid_text or len(hybrid_text) < 30:
+            else:
+                desired_text = _ensure_salutation_and_signature(desired_text, sender, is_academic)
+
+            if _is_invalid_draft(hybrid_text):
                 hybrid_text = fallback_triple["hybrid"]
+            else:
+                hybrid_text = _ensure_salutation_and_signature(hybrid_text, sender, is_academic)
 
             primary_reply = hybrid_text if custom_instruction.strip() else suggested_text
 
@@ -1292,7 +1391,7 @@ def _clean_subject_for_prose(subject: str) -> str:
 def _grammarly_transform_instruction(prompt_raw: str, clean_sub: str, clean_sender: str, sub_topic: str) -> str:
     """
     Grammarly-grade intent transformer: converts raw user steering prompts
-    into authentic, courteous, highly articulate professional email sentences.
+    or quick starter presets into authentic, courteous, highly articulate first-person email prose.
     Never outputs raw instructions like 'Ask the sender to explain...' or commit hashes.
     """
     raw = prompt_raw.strip()
@@ -1305,14 +1404,54 @@ def _grammarly_transform_instruction(prompt_raw: str, clean_sub: str, clean_send
 
     lower_p = raw.lower()
 
-    # 1. Asking for explanation / details / logs (e.g. user screenshot)
-    if any(k in lower_p for k in ["explain the issue", "explain properly", "explain what went wrong", "ask them to explain", "ask the sender to explain", "provide logs", "share error trace", "more details about the error"]):
+    # 1. Unsubscribe / Opt-Out from marketing / newsletters
+    if any(k in lower_p for k in ["unsubscribe", "opt out", "remove my address", "remove my email", "stop receiving", "remove from future", "marketing digest"]):
         return (
-            f"Could you please share more details and the relevant error traces or logs regarding {clean_sub}?\n\n"
-            f"Having more context on the exact failure or error trace will help us isolate the root cause and address it promptly."
+            f"Could you please unsubscribe my email address from this newsletter distribution list regarding {clean_sub} "
+            f"and remove me from all future marketing digests and promotional communications?"
         )
 
-    # 2. Joining after 5 PM / time window + Zoom / Meet link
+    # 2. Student & Developer Discounts / Academic Pricing
+    if any(k in lower_p for k in ["student", "discount", "developer discount", "educational pricing", "academic discount"]):
+        return (
+            f"Could you please let me know if special educational or student developer discounts are available for {clean_sub}? "
+            f"I would appreciate details on eligibility criteria and the verification process."
+        )
+
+    # 3. Specs & Benchmarks / Technical Comparison
+    if any(k in lower_p for k in ["specs", "specifications", "benchmark", "comparison sheet", "datasheet"]):
+        return (
+            f"Could you please share the detailed technical specifications and hardware benchmark comparison charts regarding {clean_sub}?"
+        )
+
+    # 4. Availability & Launch Date in India
+    if any(k in lower_p for k in ["availability in india", "available in india", "retail availability", "launch date", "store launch"]):
+        return (
+            f"Could you please provide information regarding retail availability and authorized student store launch dates in India for {clean_sub}?"
+        )
+
+    # 5. Pushed Fixes / Re-test CI / GitHub PR
+    if any(k in lower_p for k in ["pushed fix", "pushed commits", "addressed feedback", "re-test", "re-run ci", "changes committed"]):
+        return (
+            f"I have addressed the requested review feedback and pushed updated commits to the branch for {clean_sub}. "
+            f"All CI checks are passing and ready for re-review."
+        )
+
+    # 6. Track in Separate Issue / Merge Core Architecture
+    if any(k in lower_p for k in ["separate issue", "track separately", "merge current", "merge core", "track remainder"]):
+        return (
+            f"To keep this pull request focused and maintainable, I propose merging the primary architecture refactor for {clean_sub} now, "
+            f"and tracking the remaining enhancements in a dedicated follow-up issue."
+        )
+
+    # 7. Asking for explanation / details / error trace / logs
+    if any(k in lower_p for k in ["explain the issue", "explain properly", "explain what went wrong", "ask them to explain", "ask the sender to explain", "provide logs", "share error trace", "stack trace", "more details about the error", "failing edge case"]):
+        return (
+            f"Could you please share more details and the relevant error traces, logs, or failing test snippets regarding {clean_sub}?\n\n"
+            f"Having more context on the exact failure will help us isolate the root cause and address it promptly."
+        )
+
+    # 8. Joining after 5 PM / time window + Zoom / Meet link
     if "after 5" in lower_p or ("5 pm" in lower_p or "5:00 pm" in lower_p):
         has_zoom = any(k in lower_p for k in ["zoom", "meet", "link", "credentials"])
         zoom_sentence = "\n\nCould you please share the Google Meet or Zoom link and session credentials so I can connect promptly at that time?" if has_zoom else ""
@@ -1321,35 +1460,140 @@ def _grammarly_transform_instruction(prompt_raw: str, clean_sub: str, clean_send
             f"I will only be able to join after 5:00 PM.{zoom_sentence}"
         )
 
-    # 3. Requesting meeting / Zoom link only
-    if any(k in lower_p for k in ["ask for zoom", "ask for meet", "send zoom", "send meet", "meeting link", "zoom link", "google meet link"]):
+    # 9. Requesting meeting / Zoom / Meet link only
+    if any(k in lower_p for k in ["ask for zoom", "ask for meet", "send zoom", "send meet", "meeting link", "zoom link", "google meet link", "10-minute huddle", "15-min", "quick sync"]):
         return (
-            f"Could you please share the Google Meet or Zoom link and meeting agenda for {clean_sub} so I can connect?"
+            f"Could you please share a Google Meet or Zoom link so we can connect for a brief discussion regarding {clean_sub}?"
         )
 
-    # 4. Busy with exams / checking on Monday
+    # 10. Busy with exams / checking on Monday
     if any(k in lower_p for k in ["busy with exams", "busy with exam", "college exams", "cie exams"]) and "monday" in lower_p:
         return (
             f"I am currently occupied with ongoing college CIE examinations and will not be able to address this immediately.\n\n"
             f"I will investigate {clean_sub} thoroughly and follow up with a complete update on Monday morning."
         )
 
-    # 5. Requesting extension / grace period
-    if any(k in lower_p for k in ["extension", "grace period", "more time", "delay", "postpone"]):
+    # 11. Requesting extension / grace period
+    if any(k in lower_p for k in ["extension", "grace period", "more time", "24-hour extension", "24h submission", "3-day grace"]):
         return (
-            f"Could we please request a brief 3-day extension regarding {clean_sub} to finalize and verify our deliverables before review?"
+            f"Could we please request a brief extension regarding {clean_sub} to finalize and verify our deliverables before review?"
         )
 
-    # 6. Politely declining due to exams / commitments
-    if any(k in lower_p for k in ["decline", "cannot attend", "pass on this", "not looking"]):
+    # 12. Fee Paid / Share UTR Reference
+    if any(k in lower_p for k in ["fee paid", "paid - share utr", "utr reference", "challan", "dues were previously cleared", "counterfoil"]):
+        return (
+            f"I would like to confirm that the fee payment regarding {clean_sub} has already been completed. "
+            f"I have recorded the transaction UTR reference and attached the payment receipt for your records and CIE clearance."
+        )
+
+    # 13. Tax Invoice / Itemized breakdown
+    if any(k in lower_p for k in ["tax invoice", "itemized", "breakdown of charges", "gst-compliant", "licensing charges"]):
+        return (
+            f"Could you please provide an itemized, GST-compliant tax invoice showing the complete breakdown of software licensing charges for {clean_sub}?"
+        )
+
+    # 14. Dispute unexpected / duplicate charge
+    if any(k in lower_p for k in ["dispute", "unexpected charge", "duplicate charge", "refund", "duplicate debit"]):
+        return (
+            f"I noticed an unexpected charge on our account regarding {clean_sub}. "
+            f"Could your billing support team please review the transaction record and provide clarification or initiate a refund if this was processed in error?"
+        )
+
+    # 15. Cancel subscription / auto-renewal
+    if any(k in lower_p for k in ["cancel subscription", "cancel plan", "halt recurring", "account downgrade"]):
+        return (
+            f"Please cancel the recurring subscription plan regarding {clean_sub} and confirm that auto-renewal has been halted and the account downgraded."
+        )
+
+    # 16. Confirm authorized login
+    if any(k in lower_p for k in ["confirm authorized", "authorized login", "recognized personal device", "sign-in was authorized", "legitimate login"]):
+        return (
+            f"Thank you for the security notification regarding {clean_sub}. "
+            f"I confirm that this recent sign-in activity was authorized and initiated by me from a recognized personal device."
+        )
+
+    # 17. Unauthorized access / terminate sessions
+    if any(k in lower_p for k in ["unauthorized access", "terminate active sessions", "report suspicious", "revoke session", "unrecognized activity"]):
+        return (
+            f"Regarding the security alert for {clean_sub}, I do NOT recognize this activity. "
+            f"Please terminate all active sessions immediately while I proceed to change my password and update two-factor authentication."
+        )
+
+    # 18. Request IP & Geolocation
+    if any(k in lower_p for k in ["ip address", "geolocation", "browser user-agent", "device log", "ip & geolocation"]):
+        return (
+            f"Could you please provide the full IP address, browser user-agent string, and approximate geolocation associated with this session for {clean_sub}?"
+        )
+
+    # 19. Interview - Accept slot
+    if any(k in lower_p for k in ["accept slot", "confirm attendance for the scheduled interview", "accept proposed time slot", "interview invitation"]):
+        return (
+            f"Thank you very much for the interview invitation regarding {clean_sub}. "
+            f"I am pleased to confirm my attendance for the scheduled discussion. Could you please share the Google Meet or Zoom link and meeting agenda?"
+        )
+
+    # 20. Interview - Inquire format
+    if any(k in lower_p for k in ["assessment format", "live coding", "system design", "inquire whether the technical interview"]):
+        return (
+            f"Thank you for reaching out regarding {clean_sub}. Could you please share more details regarding the interview format "
+            f"(whether it will focus on live coding, system design, or domain questions) so I can prepare accordingly?"
+        )
+
+    # 21. Offer - Enthusiastically accept
+    if any(k in lower_p for k in ["enthusiastically confirm acceptance", "enthusiastically accept", "accept the offer"]):
+        return (
+            f"Thank you so much for the offer letter for {clean_sub}! I am thrilled to accept the position and look forward to joining the team. "
+            f"Could you please share the next steps and onboarding instructions?"
+        )
+
+    # 22. Offer - Review window
+    if any(k in lower_p for k in ["3 business days to review", "3 days to review", "review window", "consideration window"]):
+        return (
+            f"Thank you very much for extending the offer for {clean_sub}. "
+            f"May I please request a 3-day consideration window to thoroughly review the terms and academic schedule with my mentors before signing?"
+        )
+
+    # 23. Share Resume & GitHub
+    if any(k in lower_p for k in ["share resume", "resume highlights", "github repository", "github portfolio", "express strong interest"]):
+        return (
+            f"Thank you for reaching out regarding {clean_sub}. I am very interested in this opportunity! "
+            f"I have shared my updated resume highlights and GitHub repository links for your review."
+        )
+
+    # 24. CIE Exam Syllabus / Unit 5
+    if any(k in lower_p for k in ["unit 5", "syllabus scope", "lab component", "upcoming cie"]):
+        return (
+            f"Thank you for sharing the circular regarding {clean_sub}. "
+            f"Could you please clarify if Unit 5 and the experimental lab components are included in the syllabus scope for this upcoming CIE evaluation?"
+        )
+
+    # 25. Timetable Clash
+    if any(k in lower_p for k in ["timetable clash", "overlapping schedule clash", "alternate sitting"]):
+        return (
+            f"Thank you for circulating the examination timetable for {clean_sub}. "
+            f"I would like to bring to your attention that there is an active timetable clash with another scheduled evaluation. "
+            f"Would it be possible to arrange an alternate sitting?"
+        )
+
+    # 26. Politely declining due to exams / commitments
+    if any(k in lower_p for k in ["decline", "cannot attend", "pass on this", "not looking", "respectfully pass"]):
         return (
             f"Due to my ongoing academic semester exam schedule at BMSCE, I will have to respectfully pass on this round regarding {clean_sub}, "
             f"but I would welcome staying in touch for future opportunities."
         )
 
-    # 7. General conversational transformation: strip 3rd person meta-prompts
+    # 27. General conversational transformation: strip 3rd person meta-prompts
     p = raw
     p = re.sub(r'^(?:please\s+)?(?:say|tell\s+(?:them|the\s+sender)|let\s+(?:them|the\s+sender)\s+know|inform\s+(?:them|the\s+sender)|mention)\s+(?:that\s+)?', 'I would like to let you know that ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:confirm\s+that\s+)', 'I would like to confirm that ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:inform\s+that\s+)', 'I would like to inform you that ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:inquire\s+(?:whether|if)\s+)', 'Could you please let me know whether ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:inquire\s+regarding\s+)', 'Could you please provide information regarding ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:inquire\s+about\s+)', 'Could you please share details about ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:request\s+(?:a|an|the)?\s*)', 'Could I please request ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+(?:for|about)\s+)', 'Could you please share ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:propose\s+)', 'I propose ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:express\s+)', 'I would like to express ', p, flags=re.IGNORECASE)
     p = re.sub(r'\b(?:and\s+)?(?:please\s+)?(?:ask\s+(?:the\s+sender|them)\s+to|ask\s+to)\s+', 'Could you please ', p, flags=re.IGNORECASE)
     p = re.sub(r'\b(?:and\s+)?(?:please\s+)?(?:ask\s+for|request)\s+(?:the\s+)?', 'Could you please share the ', p, flags=re.IGNORECASE)
     p = re.sub(r'\b(?:and\s+)?(?:please\s+)?ask\s+if\s+', 'Could you please let me know if ', p, flags=re.IGNORECASE)
@@ -1431,11 +1675,17 @@ def _generate_triple_heuristic_drafts(
     desired = f"{salutation}\n\n{desired_body}\n\n{sig}"
 
     # 3. Hybrid Draft: Synthesizing Contextual Anchor + Grammarly-Polished Request
-    suggested_paragraphs = [p.strip() for p in suggested.split("\n\n") if p.strip()]
-    context_paras = [p for p in suggested_paragraphs if not p.startswith(("Dear ", "Hi ", "Best regards", "USN:", "Department", "Arya"))]
-    context_anchor = context_paras[0] if context_paras else f"Thank you for contacting me regarding {clean_sub}."
+    # If the user instruction is to unsubscribe, dispute, cancel, or report unauthorized,
+    # do NOT prepend courtesy thank-you anchors.
+    lower_desired = desired_body.lower()
+    if any(k in lower_desired for k in ["unsubscribe", "cancel", "dispute", "unauthorized", "terminate active session", "unexpected charge"]):
+        hybrid_body = desired_body
+    else:
+        suggested_paragraphs = [p.strip() for p in suggested.split("\n\n") if p.strip()]
+        context_paras = [p for p in suggested_paragraphs if not p.startswith(("Dear ", "Hi ", "Best regards", "USN:", "Department", "Arya"))]
+        context_anchor = context_paras[0] if context_paras else f"Thank you for contacting me regarding {clean_sub}."
+        hybrid_body = f"{context_anchor}\n\n{desired_body}"
 
-    hybrid_body = f"{context_anchor}\n\n{desired_body}"
     hybrid = f"{salutation}\n\n{hybrid_body}\n\n{sig}"
 
     return {
