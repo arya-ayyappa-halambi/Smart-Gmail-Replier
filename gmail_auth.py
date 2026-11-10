@@ -12,8 +12,10 @@ from typing import Optional
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+import google_auth_oauthlib.flow as oauth_flow
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import Resource, build
+import wsgiref.util
 
 # Required Google OAuth 2.0 scopes
 SCOPES = [
@@ -24,6 +26,103 @@ SCOPES = [
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_CREDENTIALS_PATH = BASE_DIR / "credentials.json"
 DEFAULT_TOKEN_PATH = BASE_DIR / "token.json"
+
+SUCCESS_REDIRECT_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Signed In Successfully - MailMind AI</title>
+  <meta http-equiv="refresh" content="0; url=http://localhost:8000/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      background: #1e293b;
+      padding: 40px 48px;
+      border-radius: 24px;
+      border: 1px solid #334155;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      max-width: 460px;
+      width: 100%;
+    }
+    .icon-wrapper {
+      width: 56px;
+      height: 56px;
+      background: rgba(37, 99, 235, 0.15);
+      border: 2px solid #3b82f6;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      color: #60a5fa;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #3b82f6;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin: 16px auto 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h2 { margin: 0 0 10px; font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; }
+    p { margin: 0 0 20px; font-size: 14px; color: #94a3b8; line-height: 1.5; }
+    .btn {
+      display: inline-block;
+      background: #2563eb;
+      color: #ffffff;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .btn:hover { background: #1d4ed8; }
+  </style>
+  <script>
+    // 1. Immediately redirect this active window to MailMind AI
+    window.location.replace("http://localhost:8000/");
+
+    // 2. If this window was opened as a popup from another tab, reload parent and close popup
+    if (window.opener && !window.opener.closed) {
+      try {
+        window.opener.location.href = "http://localhost:8000/";
+        setTimeout(function() { window.close(); }, 300);
+      } catch(e) {}
+    }
+  </script>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-wrapper">✓</div>
+    <h2>Authentication Complete!</h2>
+    <p>Signing you in and loading your inbox directly inside MailMind AI...</p>
+    <div class="spinner"></div>
+    <div style="margin-top: 24px;">
+      <a href="http://localhost:8000/" class="btn">Enter MailMind AI</a>
+    </div>
+  </div>
+</body>
+</html>"""
 
 
 class GmailAuthError(Exception):
@@ -106,8 +205,20 @@ def get_gmail_credentials(
     # 4. Interactive OAuth 2.0 flow
     print("[gmail_auth] Initiating Google OAuth 2.0 authorization in your browser...", file=sys.stderr)
     try:
+        # Patch _RedirectWSGIApp so it responds with text/html and an immediate auto-redirect to http://localhost:8000/
+        def _custom_html_wsgi_call(self, environ, start_response):
+            start_response("200 OK", [("Content-type", "text/html; charset=utf-8")])
+            self.last_request_uri = wsgiref.util.request_uri(environ)
+            return [SUCCESS_REDIRECT_HTML.encode("utf-8")]
+
+        oauth_flow._RedirectWSGIApp.__call__ = _custom_html_wsgi_call
+
         flow = InstalledAppFlow.from_client_secrets_file(str(credentials_path), SCOPES)
-        creds = flow.run_local_server(port=0, open_browser=True)
+        creds = flow.run_local_server(
+            port=0,
+            open_browser=True,
+            success_message="Signed in successfully! Redirecting you to MailMind AI..."
+        )
         # Save token for future offline runs
         with open(token_path, "w", encoding="utf-8") as token_file:
             token_file.write(creds.to_json())
