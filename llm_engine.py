@@ -270,6 +270,21 @@ SUB_TOPIC_CONFIGS = {
             {"label": "Cancel Subscription Plan", "text": "Request cancellation of the recurring subscription and confirmation of account downgrade.", "icon": "x-circle"}
         ]
     },
+    "order_shipping": {
+        "label": "Order & Shipment Tracking",
+        "chips": [
+            {"id": "confirm", "label": "Acknowledge Dispatch & Track", "desc": "Confirm receipt of tracking details and monitor delivery"},
+            {"id": "inquire", "label": "Inquire Delivery Date & Courier", "desc": "Request estimated arrival date and transit partner details"},
+            {"id": "reschedule", "label": "Update Delivery Address/Slot", "desc": "Request alternate delivery slot or address amendment"},
+            {"id": "decline", "label": "Cancel Order / Return Request", "desc": "Request order cancellation or return initiation"}
+        ],
+        "quick_starters": [
+            {"label": "Enquire Delivery Date", "text": "Could you please confirm the estimated delivery date and transit status for my order?", "icon": "clock"},
+            {"label": "Courier Tracking Link", "text": "Could you please share the direct courier tracking link and dispatch update?", "icon": "link"},
+            {"label": "Change Delivery Slot", "text": "Inquire whether the package can be delivered during an evening slot or held at the hub.", "icon": "calendar"},
+            {"label": "Tax Invoice Request", "text": "Please provide the official GST invoice and itemized purchase receipt for this shipment.", "icon": "file-text"}
+        ]
+    },
     "admin_security": {
         "label": "Security Alert & 2FA",
         "chips": [
@@ -360,7 +375,9 @@ def detect_sub_topic_and_tone(subject: str, body: str, sender: str, broad_intent
         sub_topic = "career_offer"
     elif _has_keywords(sub_lower, ["unstop", "hackathon", "internship", "hiring", "opportunity", "voyagehack"]) or "unstop" in snd:
         sub_topic = "career_inquiry"
-    elif _has_keywords(sub_lower, ["invoice", "receipt", "order #", "billing"]) or any(k in snd for k in ["uber", "swiggy", "zomato", "amazon"]):
+    elif _has_keywords(sub_lower, ["shipped", "out for delivery", "order dispatched", "delivery update", "order item", "tracking", "package delivered", "shipment", "order item has been shipped"]) or any(k in snd for k in ["myntra", "flipkart", "bluedart", "delhivery", "dtdc", "shadowfax"]):
+        sub_topic = "order_shipping"
+    elif _has_keywords(sub_lower, ["invoice", "receipt", "order #", "billing", "payment of rs", "payment successful"]) or any(k in snd for k in ["uber", "swiggy", "zomato", "amazon"]):
         sub_topic = "admin_invoice"
     elif _has_keywords(sub_lower, ["verification code", "security alert", "2fa", "otp", "password reset", "unauthorized"]):
         sub_topic = "admin_security"
@@ -443,7 +460,7 @@ def generate_dynamic_quick_starters(
     return config.get("quick_starters", SUB_TOPIC_CONFIGS["general"]["quick_starters"])
 
 
-def _is_invalid_draft(text: str) -> bool:
+def _is_invalid_draft(text: str, custom_instruction: str = "") -> bool:
     """Detects hallucinated sender-inversion, empty drafts, or third-person meta summaries."""
     if not text or len(text.strip()) < 25:
         return True
@@ -463,6 +480,18 @@ def _is_invalid_draft(text: str) -> bool:
         "as an ai",
         "i cannot write",
         "here is a draft",
+        "thank you for your patience",
+        "your order has been shipped",
+        "your order has shipped",
+        "we have shipped your order",
+        "you can track your order",
+        "we know you are excited",
+        "we have received your order",
+        "thank you for shopping with us",
+        "your package is on the way",
+        "we are happy to assist",
+        "our team is working on your order",
+        "thank you for your order",
         "thank you for your interest in our",
         "thank you for your interest in jiomart",
         "thank you for your interest in apple",
@@ -498,6 +527,14 @@ def _is_invalid_draft(text: str) -> bool:
     if any(b in t for b in bad_markers):
         return True
 
+    # If the user gave a custom steering prompt, check if the model just echoed it verbatim as a raw sentence
+    if custom_instruction.strip() and len(custom_instruction.strip()) > 8:
+        raw_cmd = custom_instruction.strip().rstrip('.?!')
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+        content_lines = [l for l in lines if not l.startswith(("Dear", "Hi", "Hello", "Best regards", "USN:", "Department", "Arya", "B.M.S."))]
+        if len(content_lines) == 1 and content_lines[0].lower().rstrip('.?!') == raw_cmd.lower():
+            return True
+
     # If the draft only has a salutation and a sign-off without substantial body sentences:
     lines = [l.strip() for l in text.splitlines() if l.strip()]
     content_lines = [l for l in lines if not l.startswith(("Dear", "Hi", "Hello", "Best regards", "USN:", "Department", "Arya", "B.M.S."))]
@@ -520,6 +557,8 @@ def _ensure_salutation_and_signature(draft: str, sender: str, is_academic: bool)
     ) if is_academic else "Best regards,\nArya Ayyappa Halambi"
 
     d = draft.strip()
+    if not is_academic and d.startswith("Dear "):
+        d = "Hi " + d[5:]
     if not d.lower().startswith(("dear ", "hi ", "hello ", "greetings")):
         d = f"{salutation}\n\n{d}"
     if not any(k in d.lower() for k in ["best regards", "warm regards", "sincerely", "thanks and regards", "regards,"]):
@@ -631,21 +670,23 @@ def unified_email_reasoning(
     if custom_instruction.strip():
         custom_note = (
             f"\nUSER STEERING INSTRUCTION: '{custom_instruction.strip()}'\n"
-            "GRAMMARLY CO-PILOT RULE: The user provided a raw steering prompt (e.g. 'ask the sender to explain the issue properly'). "
-            "NEVER echo or output the raw instruction or verbatim commit hashes! "
-            "Translate the instruction into fluent, courteous, second-person professional email sentences addressed directly to the sender. "
-            "For 'desired': write a clean, complete email fulfilling this request directly. "
-            "For 'hybrid': weave the email's factual context/deliverables with this request seamlessly.\n"
+            "CRITICAL CO-PILOT INSTRUCTION RULES:\n"
+            "1. You are Arya Ayyappa Halambi writing TO the sender/company.\n"
+            "2. NEVER write from the perspective of the company, customer support agent, or sender. NEVER say 'Thank you for your patience', 'Your order has been shipped', 'You can track your order', 'We are glad to help'.\n"
+            "3. If replying to an order/e-commerce/company notification, refer to it as MY order ('Regarding my order (Tracking ID: ...)...').\n"
+            "4. For 'desired': Write a courteous, articulate first-person email directly executing the user's custom instruction.\n"
+            "5. For 'hybrid': Write a natural first-person email from Arya that smoothly references the specific subject / reference ID / dates from the incoming email and clearly states the user's request. NEVER copy boilerplate customer-support text into hybrid.\n"
         )
 
     prompt = (
         "You are an AI email assistant drafting authentic, highly context-aware responses for Arya Ayyappa Halambi.\n"
         "Carefully read the incoming email below. Notice specific dates, room/lab numbers, assignment names, code details, or questions.\n\n"
         "CRITICAL ROLE CONSTRAINT:\n"
-        f"- You are Arya Ayyappa Halambi (the student recipient of the email), drafting a reply TO {clean_sender}.\n"
-        "- NEVER write from the perspective of the sender or their company (e.g. NEVER write 'Thank you for your interest in our company/newsletter' or 'feel free to contact us').\n"
+        f"- You are Arya Ayyappa Halambi (the recipient), drafting a reply TO {clean_sender}.\n"
+        "- NEVER write from the perspective of the sender or their company (e.g. NEVER write 'Thank you for your patience', 'Your order has been shipped', 'Thank you for your interest in our company/newsletter' or 'feel free to contact us').\n"
         "- NEVER write third-person summaries in drafts (e.g. NEVER write 'The sender is communicating about...').\n"
-        f"- Write authentic first-person replies from Arya to {clean_sender} ('I have reviewed...', 'Could you please...').\n\n"
+        f"- Write authentic first-person replies from Arya to {clean_sender} ('I have reviewed...', 'Could you please...').\n"
+        "- Format drafts with clear paragraph breaks (\\n\\n) between salutation, body, and sign-off.\n\n"
         f"Incoming Email:\n"
         f"From: {sender}\n"
         f"Subject: {subject}\n"
@@ -663,8 +704,8 @@ def unified_email_reasoning(
         '  "expectation": "Concrete deliverable, action, or deadline expected by the sender.",\n'
         '  "action_items": ["Specific practical action 1", "Specific practical action 2"],\n'
         '  "suggested": "Full drafted email response adhering strictly to the Chosen Response Strategy.",\n'
-        '  "desired": "Email response directly addressing the user custom instruction (or direct intent).",\n'
-        '  "hybrid": "Synthesized response combining contextual facts/deliverables with user instruction."\n'
+        '  "desired": "Email response politely executing the user steering instruction in fluent first-person sentences (do NOT echo the raw prompt verbatim).",\n'
+        '  "hybrid": "Synthesized first-person email response from Arya combining email reference details with the user steering request."\n'
         "}\n\n"
         "Return ONLY the valid JSON object. No other text."
     )
@@ -712,17 +753,17 @@ def unified_email_reasoning(
             desired_text = re.sub(r'^Subject:\s*.*?\n+', '', desired_text, flags=re.IGNORECASE).strip()
             hybrid_text = re.sub(r'^Subject:\s*.*?\n+', '', hybrid_text, flags=re.IGNORECASE).strip()
 
-            if _is_invalid_draft(suggested_text):
+            if _is_invalid_draft(suggested_text, ""):
                 suggested_text = fallback_triple["suggested"]
             else:
                 suggested_text = _ensure_salutation_and_signature(suggested_text, sender, is_academic)
 
-            if _is_invalid_draft(desired_text):
+            if _is_invalid_draft(desired_text, custom_instruction):
                 desired_text = fallback_triple["desired"]
             else:
                 desired_text = _ensure_salutation_and_signature(desired_text, sender, is_academic)
 
-            if _is_invalid_draft(hybrid_text):
+            if _is_invalid_draft(hybrid_text, custom_instruction):
                 hybrid_text = fallback_triple["hybrid"]
             else:
                 hybrid_text = _ensure_salutation_and_signature(hybrid_text, sender, is_academic)
@@ -855,10 +896,18 @@ def _clean_sender_name(sender_str: str) -> str:
     if "<" in cleaned:
         display = cleaned.split("<")[0].strip()
         if display:
-            return display
-        email_part = cleaned.split("<")[1].split(">")[0].strip()
-        return email_part.split("@")[0].replace(".", " ").title()
-    return cleaned
+            cleaned = display
+        else:
+            email_part = cleaned.split("<")[1].split(">")[0].strip()
+            cleaned = email_part.split("@")[0].replace(".", " ").title()
+
+    # Clean automated noise suffixes: e.g. "Myntra Updates" -> "Myntra Team"
+    lower_c = cleaned.lower()
+    for word in ["updates", "notifications", "no-reply", "noreply", "mailer", "digest", "newsletter", "bot"]:
+        if word in lower_c:
+            cleaned = re.sub(rf'\b{word}\b', 'Team', cleaned, flags=re.IGNORECASE).strip()
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    return cleaned if cleaned else "there"
 
 
 def _extract_body_entities(body: str) -> Dict[str, Any]:
@@ -900,11 +949,21 @@ def _extract_body_entities(body: str) -> Dict[str, Any]:
         if len(imperatives) >= 3:
             break
 
+    tracking_id = None
+    m_track = re.search(r'\b(?:tracking\s*(?:id|number|no\.?)|waybill|awb)\s*[:#-]?\s*([A-Za-z0-9]{8,25})\b', body, re.IGNORECASE)
+    if m_track:
+        tracking_id = m_track.group(1).strip()
+    else:
+        m_generic = re.search(r'\b([A-Z]{3,6}\d{8,16})\b', body)
+        if m_generic:
+            tracking_id = m_generic.group(1).strip()
+
     return {
         "dates": dates,
         "venues": venues,
         "questions": questions,
-        "imperatives": imperatives
+        "imperatives": imperatives,
+        "tracking_id": tracking_id
     }
 
 
@@ -940,6 +999,10 @@ def _generate_heuristic_insights(subject: str, sender: str, body: str, intent: s
     elif sub_topic == "career_inquiry":
         simple_words = f"{clean_sender} shared engineering career / hackathon opportunity details for {clean_sub}."
         expectation = "Review opportunity guidelines, tech stack focus, and submit application if interested."
+    elif sub_topic == "order_shipping":
+        track_clause = f" with tracking ID {entities['tracking_id']}" if entities.get('tracking_id') else ""
+        simple_words = f"{clean_sender} has dispatched your shipment for {clean_sub}{track_clause}."
+        expectation = f"Track delivery progress{dates_str} and ensure availability to receive the package."
     else:
         simple_words = f"{clean_sender} communicated details regarding {clean_sub}{dates_str}."
         expectation = f"Review the notification and follow up with the requested next steps{dates_str}."
@@ -1257,6 +1320,29 @@ def _generate_heuristic_reply(
                 f"I am very interested in this opportunity! I have attached my updated resume and GitHub portfolio showcasing my full-stack and machine learning projects."
             )
 
+    elif sub_topic == "order_shipping":
+        track_ref = f" (Tracking ID: {entities['tracking_id']})" if entities.get('tracking_id') else ""
+        if variant == "inquire":
+            body_msg = (
+                f"Thank you for the shipment notification regarding my order{track_ref}.\n\n"
+                f"Could you please share the current transit status and confirm the estimated delivery date?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Regarding my recent order{track_ref}, I would like to inquire if it is possible to reschedule "
+                f"the delivery to an evening slot, or update the delivery instructions before arrival."
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Regarding my order{track_ref}, I will unfortunately be unavailable to receive this package. "
+                f"Could you please advise on how to cancel this shipment or initiate an immediate return?"
+            )
+        else:
+            body_msg = (
+                f"Thank you for confirming that my order has been shipped{track_ref}.\n\n"
+                f"I have noted the tracking information and will monitor the delivery progress."
+            )
+
     elif sub_topic == "admin_invoice":
         if variant == "inquire":
             body_msg = (
@@ -1376,6 +1462,10 @@ def _clean_subject_for_prose(subject: str) -> str:
     s = re.sub(r'\b[0-9a-f]{7,40}\b', '', s, flags=re.IGNORECASE).strip()
     # Strip bracketed repository names or tags like [arya-ayyappa-halambi/Vuln_Pilot]
     s = re.sub(r'\[.*?\]', '', s).strip()
+    s = s.rstrip('.?!,;:- ')
+    # Invert second-person to first-person for recipient
+    s = re.sub(r'^(?:Your|your)\s+', 'my ', s)
+    s = re.sub(r'\b(?:Your|your)\s+(order|item|package|account|subscription|ticket|application|submission)\b', r'my \1', s, flags=re.IGNORECASE)
     # Check for specific CI/CD phrases
     if re.search(r'\b(pr run failed|workflow run failed|workflow run|run failed|build failed)\b', s, re.IGNORECASE):
         return "the recent PR workflow run failure"
@@ -1388,7 +1478,7 @@ def _clean_subject_for_prose(subject: str) -> str:
     return s if s else "your message"
 
 
-def _grammarly_transform_instruction(prompt_raw: str, clean_sub: str, clean_sender: str, sub_topic: str) -> str:
+def _grammarly_transform_instruction(prompt_raw: str, clean_sub: str, clean_sender: str, sub_topic: str, tracking_id: Optional[str] = None) -> str:
     """
     Grammarly-grade intent transformer: converts raw user steering prompts
     or quick starter presets into authentic, courteous, highly articulate first-person email prose.
@@ -1403,6 +1493,28 @@ def _grammarly_transform_instruction(prompt_raw: str, clean_sub: str, clean_send
         return raw
 
     lower_p = raw.lower()
+
+    # 0. Order Tracking / Delivery Date / Shipment Status
+    if any(k in lower_p for k in ["delivery date", "when will it be delivered", "enquire about the delivery", "enquire about delivery", "track order", "shipping status", "order status", "when will it arrive", "delivery status", "expected arrival", "when is it coming", "transit update"]):
+        track_ref = f" (Tracking ID: {tracking_id})" if tracking_id else ""
+        return (
+            f"I am writing regarding my recent order{track_ref}.\n\n"
+            f"Could you please provide an update on the current transit status and confirm the estimated delivery date?"
+        )
+
+    if any(k in lower_p for k in ["change address", "update address", "new address", "wrong address"]):
+        track_ref = f" (Tracking ID: {tracking_id})" if tracking_id else ""
+        return (
+            f"Regarding my recent order{track_ref}, I would like to inquire if it is possible to update the delivery address "
+            f"prior to dispatch."
+        )
+
+    if any(k in lower_p for k in ["cancel order", "cancel shipment", "stop delivery", "cancel item"]):
+        track_ref = f" (Tracking ID: {tracking_id})" if tracking_id else ""
+        return (
+            f"Regarding my recent order{track_ref}, I would like to request immediate cancellation of this shipment "
+            f"and initiation of the corresponding refund."
+        )
 
     # 1. Unsubscribe / Opt-Out from marketing / newsletters
     if any(k in lower_p for k in ["unsubscribe", "opt out", "remove my address", "remove my email", "stop receiving", "remove from future", "marketing digest"]):
@@ -1667,8 +1779,10 @@ def _generate_triple_heuristic_drafts(
             "hybrid": suggested
         }
 
+    entities = _extract_body_entities(body)
+
     # 2. Desired Draft: Grammarly-grade rewrite of user steering instruction
-    desired_body = _grammarly_transform_instruction(raw_inst, clean_sub, clean_sender, sub_topic)
+    desired_body = _grammarly_transform_instruction(raw_inst, clean_sub, clean_sender, sub_topic, entities.get("tracking_id"))
     if checked_action_items:
         items_str = "\n".join([f"• Confirmed: {item}" for item in checked_action_items])
         desired_body += f"\n\nDeliverable Checklist:\n{items_str}"
@@ -1676,9 +1790,9 @@ def _generate_triple_heuristic_drafts(
 
     # 3. Hybrid Draft: Synthesizing Contextual Anchor + Grammarly-Polished Request
     # If the user instruction is to unsubscribe, dispute, cancel, or report unauthorized,
-    # do NOT prepend courtesy thank-you anchors.
+    # or an e-commerce / delivery tracking inquiry, do NOT prepend courtesy thank-you anchors.
     lower_desired = desired_body.lower()
-    if any(k in lower_desired for k in ["unsubscribe", "cancel", "dispute", "unauthorized", "terminate active session", "unexpected charge"]):
+    if any(k in lower_desired for k in ["unsubscribe", "cancel", "dispute", "unauthorized", "terminate active session", "unexpected charge", "delivery date", "tracking id", "transit status", "recent order"]):
         hybrid_body = desired_body
     else:
         suggested_paragraphs = [p.strip() for p in suggested.split("\n\n") if p.strip()]
