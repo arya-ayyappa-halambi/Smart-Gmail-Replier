@@ -159,6 +159,30 @@ class EmailClassifierEngine:
         if self.vectorizer is None or self.intent_model is None or self.urgency_model is None:
             self._initialize_models(retrain=True)
 
+        # High-precision domain / automated notification overrides
+        snd_clean = sender.lower()
+        sub_clean = subject.lower()
+
+        # 1. Automated Marketing & Newsletters (Quora Digest, Apilayer News, Medium, Pinterest, etc.)
+        if any(k in snd_clean for k in ["quora.com", "digest", "newsletter", "apilayer", "substack", "medium.com", "insideapple", "discover.pinterest.com", "pinterest.com"]) or any(k in sub_clean for k in ["digest", "newsletter", "top stories for you", "weekly roundup", "news:"]):
+            return {
+                "intent": "Promotional/Spam",
+                "intent_confidence": 0.95,
+                "urgency": "Low",
+                "urgency_confidence": 0.90,
+                "intent_distribution": {"Promotional/Spam": 0.95, "Action Required": 0.05},
+            }
+
+        # 2. Automated Security & Authentication (Google, GitHub OTP, 2FA)
+        if any(k in snd_clean for k in ["accounts.google.com", "no-reply@accounts.google.com", "security@google.com", "account-security"]) or any(k in sub_clean for k in ["verification code", "sudo email", "security alert", "shared some google account data", "2fa", "otp", "password reset"]):
+            return {
+                "intent": "Action Required",
+                "intent_confidence": 0.92,
+                "urgency": "High",
+                "urgency_confidence": 0.88,
+                "intent_distribution": {"Action Required": 0.92, "Promotional/Spam": 0.08},
+            }
+
         text = format_email_text(subject, sender, body)
         X = self.vectorizer.transform([text])
 

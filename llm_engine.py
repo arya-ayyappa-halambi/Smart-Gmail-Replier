@@ -210,6 +210,21 @@ SUB_TOPIC_CONFIGS = {
             {"label": "15-Min Alignment Sync", "text": "Propose a 15-minute quick sync this afternoon to finalize the API schema.", "icon": "clock"}
         ]
     },
+    "action_task": {
+        "label": "Action Item & Task Follow-up",
+        "chips": [
+            {"id": "confirm", "label": "Acknowledge & Confirm Progress", "desc": "Confirm receipt and state that required steps are underway"},
+            {"id": "inquire", "label": "Request Clarification & Inputs", "desc": "Ask for necessary specifications or reference files"},
+            {"id": "reschedule", "label": "Propose Alternate Timeline", "desc": "Request a short extension due to college commitments"},
+            {"id": "decline", "label": "Politely Defer / Delegate", "desc": "State inability to take up this task at this time"}
+        ],
+        "quick_starters": [
+            {"label": "Acknowledge & Taking Action", "text": "Acknowledge receipt and confirm that the requested steps are being executed.", "icon": "check"},
+            {"label": "Ask for Clarifications", "text": "Request additional details or guidance on the required next steps.", "icon": "help-circle"},
+            {"label": "Will Complete by Tomorrow", "text": "Confirm that this action item will be completed and updated by tomorrow.", "icon": "clock"},
+            {"label": "Unavailable Due to Exams", "text": "Explain that due to ongoing CIE exams, this will be addressed after review.", "icon": "calendar"}
+        ]
+    },
     "career_interview": {
         "label": "Interview Invitation",
         "chips": [
@@ -367,7 +382,7 @@ def detect_sub_topic_and_tone(subject: str, body: str, sender: str, broad_intent
         sub_topic = "dev_pull_request"
     elif _has_keywords(sub_lower, ["alert", "incident", "alarm", "crash", "outage"]) or any(k in snd for k in ["sentry", "pagerduty", "aws", "datadog", "grafana"]):
         sub_topic = "dev_alert"
-    elif _has_keywords(sub_lower, ["api", "architecture guide", "sqlite wal", "cdc stream", "docker", "caddy", "nginx", "rfc"]):
+    elif _has_keywords(text, ["rfc", "architecture proposal", "design doc", "sqlite wal", "cdc stream", "api schema", "interface boundary"]):
         sub_topic = "dev_collaboration"
     elif _has_keywords(sub_lower, ["interview", "screening", "technical round"]):
         sub_topic = "career_interview"
@@ -379,16 +394,22 @@ def detect_sub_topic_and_tone(subject: str, body: str, sender: str, broad_intent
         sub_topic = "order_shipping"
     elif _has_keywords(sub_lower, ["invoice", "receipt", "order #", "billing", "payment of rs", "payment successful"]) or any(k in snd for k in ["uber", "swiggy", "zomato", "amazon"]):
         sub_topic = "admin_invoice"
-    elif _has_keywords(sub_lower, ["verification code", "security alert", "2fa", "otp", "password reset", "unauthorized"]):
+    elif _has_keywords(sub_lower, [
+        "verification code", "security alert", "2fa", "otp", "password reset", "unauthorized",
+        "sudo email", "authentication code", "shared some google account data", "google account data",
+        "account data with", "security notice", "new sign-in", "login from", "device authorization",
+        "access granted", "third-party access", "security key", "confirm your identity", "verify your email",
+        "shared data", "account permissions", "google security", "critical security alert"
+    ]) or any(k in snd for k in ["accounts.google.com", "no-reply@accounts.google.com", "security@google.com", "account-security-noreply"]):
         sub_topic = "admin_security"
-    elif any(k in snd for k in ["newsletter", "linkedin", "substack", "medium", "reddit", "insideapple", "apple.com", "codepen", "leetcode", "pinterest", "grammarly", "store"]):
+    elif any(k in snd for k in ["newsletter", "linkedin", "substack", "medium", "reddit", "insideapple", "apple.com", "codepen", "leetcode", "pinterest", "grammarly", "store", "quora", "apilayer"]):
         sub_topic = "newsletter"
     elif broad_intent == "Academic/Faculty":
         sub_topic = "academic_admin"
     elif broad_intent == "Internship/Recruiter":
         sub_topic = "career_inquiry"
     elif broad_intent == "Action Required":
-        sub_topic = "dev_collaboration"
+        sub_topic = "action_task"
     elif broad_intent in ["Promotional/Spam", "Bots & Promos", "Newsletters"]:
         sub_topic = "newsletter"
     else:
@@ -906,6 +927,14 @@ def _clean_sender_name(sender_str: str) -> str:
     for word in ["updates", "notifications", "no-reply", "noreply", "mailer", "digest", "newsletter", "bot"]:
         if word in lower_c:
             cleaned = re.sub(rf'\b{word}\b', 'Team', cleaned, flags=re.IGNORECASE).strip()
+
+    if cleaned.lower() == "google" or "accounts.google.com" in sender_str.lower():
+        cleaned = "Google Team"
+    elif cleaned.lower() == "github":
+        cleaned = "GitHub Team"
+    elif cleaned.lower() == "quora":
+        cleaned = "Quora Team"
+
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
     return cleaned if cleaned else "there"
 
@@ -1003,6 +1032,12 @@ def _generate_heuristic_insights(subject: str, sender: str, body: str, intent: s
         track_clause = f" with tracking ID {entities['tracking_id']}" if entities.get('tracking_id') else ""
         simple_words = f"{clean_sender} has dispatched your shipment for {clean_sub}{track_clause}."
         expectation = f"Track delivery progress{dates_str} and ensure availability to receive the package."
+    elif sub_topic == "admin_security":
+        simple_words = f"{clean_sender} sent an account security and authorization notification for {clean_sub}."
+        expectation = "Review the authorized access permissions and verify whether the activity was legitimate."
+    elif sub_topic == "action_task":
+        simple_words = f"{clean_sender} requested action and follow-up regarding {clean_sub}."
+        expectation = "Review the requested task requirements and complete the next steps."
     else:
         simple_words = f"{clean_sender} communicated details regarding {clean_sub}{dates_str}."
         expectation = f"Review the notification and follow up with the requested next steps{dates_str}."
@@ -1373,8 +1408,8 @@ def _generate_heuristic_reply(
             )
         elif variant == "reschedule":
             body_msg = (
-                f"Regarding the security alert for {clean_sub}, I do NOT recognize this activity.\n\n"
-                f"Please terminate all active sessions immediately while I proceed to change my password and update 2FA."
+                f"Regarding the security alert for {clean_sub}, I do NOT recognize this activity or authorization.\n\n"
+                f"Please revoke access immediately while I proceed to review my security permissions and change my password."
             )
         elif variant == "decline":
             body_msg = (
@@ -1382,9 +1417,37 @@ def _generate_heuristic_reply(
                 f"No further action is required at this time."
             )
         else:
+            if any(k in clean_sub.lower() for k in ["shared", "data with", "permission", "third-party", "access"]):
+                body_msg = (
+                    f"Thank you for the security notification regarding {clean_sub}.\n\n"
+                    f"I confirm that this third-party application access was authorized and initiated by me. No further action is required."
+                )
+            else:
+                body_msg = (
+                    f"Thank you for the security notification regarding {clean_sub}.\n\n"
+                    f"I confirm that this recent sign-in activity was authorized and initiated by me."
+                )
+
+    elif sub_topic == "action_task":
+        if variant == "inquire":
             body_msg = (
-                f"Thank you for the security notification regarding {clean_sub}.\n\n"
-                f"I confirm that this recent sign-in activity was authorized and initiated by me."
+                f"Thank you for contacting me regarding {clean_sub}.\n\n"
+                f"Could you please share more details or reference documentation on the specific deliverables expected?"
+            )
+        elif variant == "reschedule":
+            body_msg = (
+                f"Regarding {clean_sub}, I am currently occupied with college academic commitments today.\n\n"
+                f"Could I please request an extension to complete and submit this by tomorrow afternoon?"
+            )
+        elif variant == "decline":
+            body_msg = (
+                f"Thank you for reaching out regarding {clean_sub}.\n\n"
+                f"Due to my ongoing academic examination preparations at BMSCE, I will not be able to take this up at this time."
+            )
+        else:
+            body_msg = (
+                f"Thank you for reaching out regarding {clean_sub}.\n\n"
+                f"I have reviewed the requirements and confirmed that the necessary action items are being addressed."
             )
 
     elif sub_topic == "newsletter":
@@ -1464,6 +1527,7 @@ def _clean_subject_for_prose(subject: str) -> str:
     s = re.sub(r'\[.*?\]', '', s).strip()
     s = s.rstrip('.?!,;:- ')
     # Invert second-person to first-person for recipient
+    s = re.sub(r'^(?:You|you)\s+shared\s+(?:some\s+)?', 'my ', s, flags=re.IGNORECASE)
     s = re.sub(r'^(?:Your|your)\s+', 'my ', s)
     s = re.sub(r'\b(?:Your|your)\s+(order|item|package|account|subscription|ticket|application|submission)\b', r'my \1', s, flags=re.IGNORECASE)
     # Check for specific CI/CD phrases
@@ -1694,11 +1758,35 @@ def _grammarly_transform_instruction(prompt_raw: str, clean_sub: str, clean_send
             f"but I would welcome staying in touch for future opportunities."
         )
 
-    # 27. General conversational transformation: strip 3rd person meta-prompts
+    # 27. Account Security & Permissions Revocation
+    if any(k in lower_p for k in ["revoke", "remove access", "terminate access", "unauthorize", "cancel access", "deny access", "don't recognize", "do not recognize"]):
+        return (
+            f"Regarding the account authorization notification for {clean_sub}, I would like to revoke this access immediately. "
+            f"Please terminate all active permissions and data sharing granted to this application."
+        )
+
+    if any(k in lower_p for k in ["confirm access", "it was me", "authorized this", "confirm authorization", "recognize this"]):
+        return (
+            f"Thank you for the security notification regarding {clean_sub}. "
+            f"I confirm that this third-party access was authorized and initiated by me from a recognized personal device."
+        )
+
+    # 28. General conversational transformation: strip 3rd person meta-prompts
     p = raw
     p = re.sub(r'^(?:please\s+)?(?:say|tell\s+(?:them|the\s+sender)|let\s+(?:them|the\s+sender)\s+know|inform\s+(?:them|the\s+sender)|mention)\s+(?:that\s+)?', 'I would like to let you know that ', p, flags=re.IGNORECASE)
     p = re.sub(r'^(?:confirm\s+that\s+)', 'I would like to confirm that ', p, flags=re.IGNORECASE)
     p = re.sub(r'^(?:inform\s+that\s+)', 'I would like to inform you that ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:I\s+want\s+to\s+)', 'I would like to ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+when\s+is\s+)', 'Could you please let me know when is ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+when\s+)', 'Could you please confirm when ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+where\s+)', 'Could you please let me know where ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+how\s+to\s+)', 'Could you please guide me on how to ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+how\s+)', 'Could you please explain how ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+why\s+)', 'Could you please clarify why ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+what\s+is\s+)', 'Could you please share what is ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+what\s+)', 'Could you please share ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+if\s+)', 'Could you please let me know if ', p, flags=re.IGNORECASE)
+    p = re.sub(r'^(?:ask\s+whether\s+)', 'Could you please confirm whether ', p, flags=re.IGNORECASE)
     p = re.sub(r'^(?:inquire\s+(?:whether|if)\s+)', 'Could you please let me know whether ', p, flags=re.IGNORECASE)
     p = re.sub(r'^(?:inquire\s+regarding\s+)', 'Could you please provide information regarding ', p, flags=re.IGNORECASE)
     p = re.sub(r'^(?:inquire\s+about\s+)', 'Could you please share details about ', p, flags=re.IGNORECASE)
