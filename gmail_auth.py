@@ -7,6 +7,8 @@ initial OAuth 2.0 browser authorization flow to generate token.json.
 
 import os
 import sys
+import threading
+import webbrowser
 from pathlib import Path
 from typing import Optional
 
@@ -26,6 +28,13 @@ SCOPES = [
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_CREDENTIALS_PATH = BASE_DIR / "credentials.json"
 DEFAULT_TOKEN_PATH = BASE_DIR / "token.json"
+
+_LATEST_AUTH_URL: Optional[str] = None
+_AUTH_URL_EVENT: threading.Event = threading.Event()
+
+def get_latest_auth_url() -> Optional[str]:
+    """Returns the most recently generated Google OAuth authorization URL."""
+    return _LATEST_AUTH_URL
 
 SUCCESS_REDIRECT_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -170,7 +179,8 @@ def get_gmail_credentials(
                 token_file.write(creds.to_json())
             return creds
         except Exception as refresh_err:
-            print(f"[gmail_auth] Failed to refresh token: {refresh_err}. Re-authenticating...", file=sys.stderr)
+            print(f"[gmail_auth] Failed to refresh token: {refresh_err}. Removing stale token file...", file=sys.stderr)
+            token_path.unlink(missing_ok=True)
             creds = None
 
     # 3. If credentials.json is missing, provide explicit, friendly instructions
@@ -205,6 +215,9 @@ def get_gmail_credentials(
     # 4. Interactive OAuth 2.0 flow
     print("[gmail_auth] Initiating Google OAuth 2.0 authorization in your browser...", file=sys.stderr)
     try:
+        global _LATEST_AUTH_URL, _AUTH_URL_EVENT
+        _AUTH_URL_EVENT.clear()
+
         # Patch _RedirectWSGIApp so it responds with text/html and an immediate auto-redirect to http://localhost:8000/
         def _custom_html_wsgi_call(self, environ, start_response):
             start_response("200 OK", [("Content-type", "text/html; charset=utf-8")])
@@ -214,11 +227,27 @@ def get_gmail_credentials(
         oauth_flow._RedirectWSGIApp.__call__ = _custom_html_wsgi_call
 
         flow = InstalledAppFlow.from_client_secrets_file(str(credentials_path), SCOPES)
-        creds = flow.run_local_server(
-            port=0,
-            open_browser=True,
-            success_message="Signed in successfully! Redirecting you to MailMind AI..."
-        )
+        orig_auth_url = flow.authorization_url
+
+        def _capturing_auth_url(**kwargs):
+            global _LATEST_AUTH_URL
+            url, state = orig_auth_url(**kwargs)
+            _LATEST_AUTH_URL = url
+            _AUTH_URL_EVENT.set()
+            return url, state
+
+        flow.authorization_url = _capturing_auth_url
+
+        try:
+            creds = flow.run_local_server(
+                port=0,
+                open_browser=True,
+                success_message="Signed in successfully! Redirecting you to MailMind AI..."
+            )
+        finally:
+            _LATEST_AUTH_URL = None
+            _AUTH_URL_EVENT.clear()
+
         # Save token for future offline runs
         with open(token_path, "w", encoding="utf-8") as token_file:
             token_file.write(creds.to_json())
@@ -241,13 +270,30 @@ def get_gmail_service(
 
 
 def is_authenticated(token_path: Path = DEFAULT_TOKEN_PATH) -> bool:
-    """Checks whether a valid token.json exists without initiating an OAuth flow."""
+    """Checks whether a valid and active token exists."""
     p = Path(token_path)
     if not p.exists():
         return False
     try:
         creds = Credentials.from_authorized_user_file(str(p), SCOPES)
-        return bool(creds and (creds.valid or creds.refresh_token))
+        if not creds:
+            return False
+        if creds.valid:
+            return True
+        if creds.expired and creds.refresh_token:
+            try:
+                creds.refresh(Request())
+                with open(p, "w", encoding="utf-8") as f:
+                    f.write(creds.to_json())
+                return True
+            except Exception as e:
+                print(f"[gmail_auth] Expired token cannot be refreshed ({e}). Removing {p}", file=sys.stderr)
+                p.unlink(missing_ok=True)
+                return False
+        return False
+    except Exception:
+        p.unlink(missing_ok=True)
+        return False
     except Exception:
         return False
 

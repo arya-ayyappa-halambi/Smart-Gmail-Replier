@@ -422,6 +422,15 @@ def login(background_tasks: BackgroundTasks):
             detail="credentials.json not found."
         )
 
+    current_url = gmail_auth.get_latest_auth_url()
+    if _AUTH_IN_PROGRESS and current_url:
+        return {
+            "success": True,
+            "authorizing": True,
+            "auth_url": current_url,
+            "message": "OAuth flow in progress."
+        }
+
     _AUTH_IN_PROGRESS = True
 
     def run_auth_thread():
@@ -436,10 +445,24 @@ def login(background_tasks: BackgroundTasks):
     thread = threading.Thread(target=run_auth_thread, daemon=True)
     thread.start()
 
+    # Wait up to 2.5 seconds for the exact Google consent URL to be ready
+    gmail_auth._AUTH_URL_EVENT.wait(timeout=2.5)
+    auth_url = gmail_auth.get_latest_auth_url()
+
     return {
         "success": True,
         "authorizing": True,
+        "auth_url": auth_url,
         "message": "OAuth flow started in your browser."
+    }
+
+
+@app.get("/api/auth/url")
+def get_auth_url():
+    """Returns the current OAuth authorization URL if flow is in progress."""
+    return {
+        "auth_url": gmail_auth.get_latest_auth_url(),
+        "authorizing": _AUTH_IN_PROGRESS
     }
 
 
