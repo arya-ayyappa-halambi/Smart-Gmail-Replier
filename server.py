@@ -445,8 +445,8 @@ def login(background_tasks: BackgroundTasks):
     thread = threading.Thread(target=run_auth_thread, daemon=True)
     thread.start()
 
-    # Wait up to 2.5 seconds for the exact Google consent URL to be ready
-    gmail_auth._AUTH_URL_EVENT.wait(timeout=2.5)
+    # Wait up to 4.0 seconds for the exact Google consent URL to be ready
+    gmail_auth._AUTH_URL_EVENT.wait(timeout=4.0)
     auth_url = gmail_auth.get_latest_auth_url()
 
     return {

@@ -238,9 +238,19 @@ def get_gmail_credentials(
 
         flow.authorization_url = _capturing_auth_url
 
+        # Prefer fixed port 8080 so redirect URI matches consistently, fallback to port 0 if busy
+        target_port = 8080
+        try:
+            import socket
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('localhost', 8080))
+        except OSError:
+            target_port = 0
+
         try:
             creds = flow.run_local_server(
-                port=0,
+                host="localhost",
+                port=target_port,
                 open_browser=True,
                 success_message="Signed in successfully! Redirecting you to MailMind AI..."
             )
