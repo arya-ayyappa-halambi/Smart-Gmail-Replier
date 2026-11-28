@@ -179,6 +179,11 @@
         <span x-show="loggingIn">Opening Google Authorization...</span>
       </button>
 
+      <button @click="checkAuthAndLoad()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition flex items-center justify-center gap-2">
+        <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span>Already completed sign-in? Refresh & Enter</span>
+      </button>
+
       <div x-show="pendingAuthUrl" class="text-xs bg-blue-50 border border-blue-200 text-blue-700 p-2.5 rounded-xl text-center">
         <span>Window didn't open? </span>
         <a :href="pendingAuthUrl" target="_blank" class="font-bold underline hover:text-blue-900">Click here to sign in with Google</a>
@@ -1079,6 +1084,16 @@
           }
           this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
+          window.addEventListener('focus', async () => {
+            if (!this.auth.connected) {
+              await this.checkAuth();
+              if (this.auth.connected && this.emails.length === 0) {
+                await this.fetchEmails();
+                if (this.emails.length > 0) this.selectEmail(this.emails[0]);
+              }
+            }
+          });
+
           // Register Superhuman Keyboard Shortcuts
           window.addEventListener('keydown', (e) => {
             const tag = document.activeElement ? document.activeElement.tagName : '';
@@ -1125,6 +1140,17 @@
             const data = await res.json();
             this.auth = data;
           } catch(e) {}
+        },
+
+        async checkAuthAndLoad() {
+          await this.checkAuth();
+          if (this.auth.connected) {
+            this.showToast('Connected: ' + (this.auth.email || 'Gmail'));
+            await this.fetchEmails();
+            if (this.emails.length > 0) this.selectEmail(this.emails[0]);
+          } else {
+            this.showToast('Not connected yet. Please complete Google sign-in.');
+          }
         },
 
         async checkModelStatus() {

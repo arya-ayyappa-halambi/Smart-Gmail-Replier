@@ -274,8 +274,12 @@ def get_gmail_service(
 ) -> Resource:
     """
     Builds and returns an authorized Google API Gmail v1 service client.
+    Accepts either credentials_path or a pre-loaded Credentials object as credentials_path.
     """
-    creds = get_gmail_credentials(credentials_path, token_path, interactive=interactive)
+    if isinstance(credentials_path, Credentials):
+        creds = credentials_path
+    else:
+        creds = get_gmail_credentials(credentials_path, token_path, interactive=interactive)
     return build("gmail", "v1", credentials=creds)
 
 
