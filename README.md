@@ -1,415 +1,418 @@
-# MailMind AI — Commercial-Grade Autonomous Email Triage & Contextual Copilot Engine
+# MailMind AI — Autonomous Email Triage & Contextual Copilot Engine
 
-[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
-[![FastMCP](https://img.shields.io/badge/Protocol-FastMCP-6366F1?style=flat)](https://github.com/jlowin/fastmcp)
-[![scikit-learn](https://img.shields.io/badge/ML-scikit--learn-F7931E?style=flat&logo=scikit-learn)](https://scikit-learn.org)
-[![FAISS](https://img.shields.io/badge/RAG-FAISS%20Dense%20Retrieval-0468FF?style=flat)](https://github.com/facebookresearch/faiss)
-[![Qwen2.5-Coder](https://img.shields.io/badge/LLM-Qwen%202.5%20Coder%207B-purple?style=flat)](https://ollama.com/library/qwen2.5-coder)
-[![TailwindCSS](https://img.shields.io/badge/UI-Tailwind%20CSS-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
-> **AIML Skill Lab Project (Academic Year 2026)**  
 > **Institution**: B.M.S. College of Engineering (BMSCE), Bengaluru  
 > **Department**: Department of Computer Science & Engineering  
-> **Author**: H R Arya Ayyappa Halambi  
+> **Course**: Artificial Intelligence & Machine Learning (AIML) Skill Lab (Project Review & Evaluation)  
+> **Student Name**: H R Arya Ayyappa Halambi  
 > **University Seat Number (USN)**: `1BF25CS095`  
-> **Course**: Artificial Intelligence & Machine Learning Skill Lab  
+> **Repository**: [https://github.com/arya-ayyappa-halambi/Smart-Gmail-Replier.git](https://github.com/arya-ayyappa-halambi/Smart-Gmail-Replier.git)
+
+---
+
+## 🌟 Quick Overview in Simple Words (Elevator Pitch)
+
+### What is MailMind AI?
+**MailMind AI** is a smart, private email assistant that acts like an executive secretary for your inbox. When you open your email:
+1. **It Reads & Sorts Instantly (<10 milliseconds)**: It automatically classifies every incoming email into 5 categories (*Academic*, *Action Required*, *Recruiter/Internship*, *Event/Club*, *Promotional/Spam*) and marks its urgency (*High*, *Medium*, *Low*).
+2. **It Explains the Email in Plain English**: Under *"In Simple Words"*, it tells you who sent it, what they want, what the deadline is, and gives you an interactive task checklist.
+3. **It Drafts 3 Tailored Replies for You**:
+   - **Suggested Draft**: An autonomous professional reply based on 4 strategic personas (*Confirm*, *Clarify*, *Reschedule*, *Decline*).
+   - **Desired Draft**: A polished version of what *you* told it to say in simple words.
+   - **Hybrid Draft**: The best of both—it combines the exact dates/facts from the email with your personal prompt.
+4. **100% Privacy & Zero Auto-Send**: Everything runs **locally on your laptop** (no data is sent to cloud LLM APIs). It **never auto-sends** emails—it only saves them safely into your **Gmail Drafts folder** for your review!
+
+---
+
+## 📊 Alignment with Evaluation Rubrics (50 Marks Matrix)
+
+This repository and document are mapped directly to the **Project Evaluation Rubrics**:
+
+| Rubric Criteria | Marks | Where It Is Covered in This Project & README |
+| :--- | :---: | :--- |
+| **1. Understanding of Problem Statement** | **5** | [Section 1: Problem Statement & Motivation](#1-understanding-the-problem-statement-5-marks) |
+| **2. Project Concept & Objectives** | **5** | [Section 2: Concept, Objectives & Architecture](#2-project-concept-and-objectives-5-marks) |
+| **3. Technical Quality & Implementation** | **7** | [Section 3: Technical Implementation & Code Quality](#3-technical-quality-and-implementation-7-marks) |
+| **4. Clarity & Organisation** | **5** | [Section 4: Dataset, Pipeline & System Design](#4-clarity-and-organisation-datasets-and-pipeline-5-marks) |
+| **5. Design & Flow** | **6** | [Section 5: End-to-End System Flow & Architecture Diagram](#5-design-and-flow-end-to-end-pipeline-6-marks) |
+| **6. Teamwork & Communication** | **6** | [Section 6: Presentation Script & Explaining in Simple Words](#6-presentation-script--explaining-in-simple-words-6-marks) |
+| **7. Code, Model & Parameters** | **8** | [Section 7: Training, Model Parameters & Evaluation Benchmarks](#7-model-parameters-training-and-benchmarks-8-marks) |
+| **8. Question & Answer Session** | **8** | [Section 8: Viva / Q&A Defense Master Guide](#8-viva--qa-defense-master-guide-8-marks) |
+| **Total Marks** | **50** | **Comprehensive Full-Score Preparation** |
 
 ---
 
 ## 📑 Table of Contents
-- **📘 [Detailed Dataset & System Architecture Specification (BMSCE AIML Lab)](./DATASET_AND_SYSTEM_ARCHITECTURE.md)**
-1. [Executive Summary & Abstract](#1-executive-summary--abstract)
-2. [Problem Statement & Motivation](#2-problem-statement--motivation)
-3. [Key Architectural Innovations](#3-key-architectural-innovations)
-4. [System Architecture & Dataflow](#4-system-architecture--dataflow)
-5. [Mathematical & Algorithmic Formulations](#5-mathematical--algorithmic-formulations)
-6. [AIML Evaluation, Benchmarks & Metrics](#6-aiml-evaluation-benchmarks--metrics)
-7. [Sub-Topic & Dynamic Persona Engine](#7-sub-topic--dynamic-persona-engine)
-8. [Real-World Case Studies & Validation](#8-real-world-case-studies--validation)
-9. [Commercial-Grade Security & Safety Protocols](#9-commercial-grade-security--safety-protocols)
-10. [Superhuman Ergonomics & Keyboard Shortcuts](#10-superhuman-ergonomics--keyboard-shortcuts)
-11. [Installation, Setup & Reproduction Guide](#11-installation-setup--reproduction-guide)
-12. [Presentation & Viva Talking Points](#12-presentation--viva-talking-points)
+1. [Understanding the Problem Statement (5 Marks)](#1-understanding-the-problem-statement-5-marks)
+2. [Project Concept and Objectives (5 Marks)](#2-project-concept-and-objectives-5-marks)
+3. [Technical Quality and Implementation (7 Marks)](#3-technical-quality-and-implementation-7-marks)
+4. [Clarity and Organisation: Datasets and Pipeline (5 Marks)](#4-clarity-and-organisation-datasets-and-pipeline-5-marks)
+5. [Design and Flow: End-to-End Pipeline (6 Marks)](#5-design-and-flow-end-to-end-pipeline-6-marks)
+6. [Presentation Script & Explaining in Simple Words (6 Marks)](#6-presentation-script--explaining-in-simple-words-6-marks)
+7. [Model Parameters, Training, and Benchmarks (8 Marks)](#7-model-parameters-training-and-benchmarks-8-marks)
+8. [Viva / Q&A Defense Master Guide (8 Marks)](#8-viva--qa-defense-master-guide-8-marks)
+9. [Slide-by-Slide PPT Outline (Ready to Copy into Slides)](#9-slide-by-slide-ppt-outline-ready-to-copy-into-slides)
+10. [Project Report Outline (Ready for Documentation)](#10-project-report-outline-ready-for-documentation)
+11. [Quick Installation & How to Run](#11-quick-installation--how-to-run)
 
 ---
 
-## 1. Executive Summary & Abstract
+## 1. Understanding the Problem Statement (5 Marks)
 
-**MailMind AI** is an enterprise-grade, privacy-preserving autonomous inbox copilot designed to solve cognitive fatigue and missed deadlines in high-volume developer, academic, and professional communication.
+### The Real-World Problem
+Students, developers, and professionals receive dozens of emails every day:
+- **Academic emails**: CIE test schedules, fee due circulars, project review vivas, attendance shortages.
+- **Developer alerts**: GitHub Pull Request feedback, CI/CD pipeline build failures, server crash logs.
+- **Career opportunities**: Hackathon invitations, recruiter screening requests, interview scheduling.
+- **Marketing clutter**: Retail promotions, newsletter digests, promotional spam.
 
-Traditional email productivity tools rely on rigid rule-based filters (which lack semantic comprehension) or slow cloud LLM APIs (which introduce high latency, token bills, and privacy risks). **MailMind AI** introduces a **Tiered Hybrid Intelligence Architecture**:
-- **Tier 1 (Sub-10ms Classical ML)**: Fast unigram+bigram TF-IDF vectorization paired with calibrated multi-class Logistic Regression categorizes 25+ emails in **under 1.5 seconds** across 5 macro-intents and 3 urgency tiers.
-- **Tier 2 (Dense Vector Few-Shot RAG)**: `all-MiniLM-L6-v2` dense embeddings with a local **FAISS L2/Cosine index** match the user's authentic communicative style and academic credentials.
-- **Tier 3 (On-Demand Foundation Model Reasoning)**: A unified single-pass local LLM pipeline powered by **Qwen 2.5 Coder (7B)** extracts deep executive comprehension (*"In Simple Words"*, *"What They Expect"*, interactive checklist items, and extracted deadlines) while formulating **4 dynamic strategic reply paths** grounded in the email's exact facts.
-
-The system is encapsulated within a spacious **3-Pane Apple Mail / Superhuman workstation canvas** with seamless zero-click Google OAuth authentication and **Zero Auto-Send** safety.
-
----
-
-## 2. Problem Statement & Motivation
-
-### The Challenge
-Modern developers and engineering students face an unmanageable influx of disparate communications:
-- Critical academic deadlines (fee due dates, CIE timetables, review lab vivas).
-- Technical pull request discussions and continuous integration telemetry alerts.
-- High-stakes recruiter inquiries, coding challenge invitations, and interview slot requests.
-- Cluttering marketing digests, promotional blasts, and automated newsletters.
-
-### Limitations of Existing Approaches
-| Existing Tool | Primary Limitation |
-| :--- | :--- |
-| **Traditional Webmail (Gmail/Outlook)** | Passive storage; manual sorting; zero contextual comprehension; no automatic deliverable extraction. |
-| **Cloud AI Mail Extensions** | Sends raw email PII to third-party cloud servers; costly recurring API subscriptions; generic, hallucinatory output. |
-| **Pure Cloud LLM Triage** | Sequential LLM processing across 25 emails takes 5–8 minutes, rendering interactive inbox navigation sluggish and unusable. |
+### Why Current Tools Fail
+1. **Standard Gmail/Outlook**: Passive storage. They don't extract the deadline, don't tell you the expected action in simple terms, and require manual drafting for every single email.
+2. **Cloud AI Plugins (Copilot / Gemini Extensions)**:
+   - **Severe Privacy Risk**: They send your personal, confidential student and developer emails to external third-party cloud servers.
+   - **Cost**: Recurring subscription fees.
+   - **Hallucinations & Accidental Sends**: They can auto-send erroneous or embarrassing replies.
+3. **Pure LLM Approaches**: Calling an LLM on 25 emails takes over 3 minutes. The user interface freezes and becomes unusable.
 
 ### The MailMind AI Solution
-A localized, client-side executive workstation backed by an asynchronous FastAPI backend that delivers **instant inbox synchronization (<1.5s total)**, deep semantic understanding, and context-specific response generation without ever exposing user data or auto-sending emails.
+A **Hybrid Tiered System**:
+- **Classical ML** does the fast sorting in **8.43 milliseconds** (so 25 emails load in <1.5 seconds).
+- **Dense Vector RAG (FAISS)** provides personal facts (USN `1BF25CS095`, BMSCE, timetable availability).
+- **Local LLM (Qwen 2.5 Coder 7B)** runs strictly on the laptop to generate deep executive comprehension and contextual drafts on demand.
+- **Zero Auto-Send Guarantee**: Drafts are safely pushed to Gmail's Drafts folder; nothing is ever sent without your human approval.
 
 ---
 
-## 3. Key Architectural Innovations
+## 2. Project Concept and Objectives (5 Marks)
 
-### 1. Unified Single-Pass Foundation Model Pipeline
-Eliminates the standard multi-call LLM penalty. A single structured prompt to **Qwen 2.5 Coder** extracts semantic summaries, expectation analysis, practical action items, and context-tailored drafts in **one atomic pass (~14–18s)**, preventing HTTP timeouts and queue bottlenecks on local hardware.
-
-### 2. 15+ Sub-Topic Semantic Classification & Tone Detection
-Bypasses blunt category stereotypes with a fine-grained hierarchical detector spanning:
-- **Academic**: `Fee Notice & Dues`, `Skill Lab & Project Review`, `CIE Exam & Timetable`, `Classroom Notes & Assignment`, `Academic Circular & Notice`.
-- **Developer & Technical**: `GitHub Pull Request & Review`, `Cloud Alert & Incident`, `Technical RFC & Architecture`.
-- **Career & Professional**: `Interview Invitation`, `Offer Letter & Onboarding`, `Career & Internship Opportunity`.
-- **Administrative & General**: `Invoice & Transaction Receipt`, `Security Alert & 2FA`, `Newsletter & Digest`.
-Identifies incoming emotional tone: `Urgent / Strict`, `Formal / Administrative`, `Technical / Instructional`, `Inquiring / Scheduling`, and `Promotional / Marketing`.
-
-### 3. Dynamic Contextual 4-Persona Formulator (Zero Boilerplate)
-Replaces hardcoded category templates with **4 bespoke strategic reply paths per email**:
-- **Confirm & Commit**: Concrete acceptance citing specific dates, venues, or UTR transaction receipts.
-- **Clarify & Inquire**: Pertinent questions resolving technical ambiguities, challan rules, or rubric weightings.
-- **Reasoned Alternative / Reschedule**: Realistic counter-proposals accommodating university CIE exam overlaps or bank delays.
-- **Tactful Deferral / Dispute**: Respectful deferral, citing prior payment clearance or tracking items in follow-up issues.
-
-### 4. Spacious 3-Pane Executive Apple Mail Workstation
-Redesigned from cramped multi-column panels into an expansive 3-pane client:
-- **Pane 1 (Navigation Sidebar, 220px)**: Mailbox folders, intent filters, and real-time live Gmail sync metrics.
-- **Pane 2 (Message Stream, 320px)**: High-density list with sender avatars, sub-topic tags, confidence indicators, and star toggles.
-- **Pane 3 (Executive Workstation Canvas, 900px+)**: Integrated reader with live `HTML | Prose` switching, Executive Intelligence cards, and Compose Studio.
-
-### 5. Automatic Zero-Click Google OAuth Redirect
-Solves the traditional CLI/WSGI OAuth trap where users were left stranded on a blank `"You may close this window"` page. The local WSGI redirect handler serves an HTML response with automated JavaScript redirection (`window.location.replace("http://localhost:8000/")`), immediately returning the user directly inside their authenticated inbox.
-
-### 6. Personalized AI Prompt Studio & Triple-Draft Generation (`Suggested`, `Desired`, `Hybrid`)
-Provides fine-grained conversational steering directly beneath the email reader:
-- **Personalized Prompt Studio**: Allows the user to provide specific freeform steering instructions (e.g., *"Say that I can only join after 5 PM because of college CIE exams, and ask for the Zoom link"*).
-- **Triple-Draft Perspective Synthesis**:
-  1. **✨ Suggested (Autonomous AI)**: Context-aware response formulated according to the email's facts and selected strategic persona.
-  2. **🎯 Desired (User-Directed)**: Response formatted strictly around the user's specific guidance, with domain-aware salutations and formal BMSCE signatures.
-  3. **⚡ Hybrid (Suggested + Desired)**: Expert synthesis blending contextual deliverable acknowledgments with the user's operational constraints.
-- **Segmented Control Switcher**: Instant zero-lag tab switching between the 3 perspectives in the composer before saving safely to Gmail Drafts (<kbd>D</kbd>) or copying (<kbd>C</kbd>).
+### Core Objectives
+1. **Sub-10ms Automated Triage**: Multi-class intent (5 categories) and urgency (3 tiers) classification using TF-IDF and calibrated Logistic Regression.
+2. **Context-Grounded RAG Engine**: Embedding past authentic writing styles and student profile facts (`data/my_context.md`) using `sentence-transformers` and FAISS vector search.
+3. **Local Privacy-First Foundation Model**: Using `qwen2.5-coder:7b` via Ollama to extract plain-English summaries, sender expectations, and actionable checklist items in a single pass.
+4. **Grammarly-Grade Dynamic Prompt Studio**: An interactive interface that takes simple user steering inputs (e.g. *"ask for Google Meet link after 5 PM"*) and transforms them into fluent, polite, first-person business emails.
+5. **Triple-Draft Perspective**: Giving the user 3 distinct choices for every reply: `Suggested` (Autonomous), `Desired` (User Prompt), and `Hybrid` (Context + Prompt).
+6. **Zero Auto-Send Human-in-the-Loop Protocol**: Direct synchronization with real Gmail via OAuth 2.0 with write access confined strictly to draft creation (`gmail.compose`).
 
 ---
 
-## 4. System Architecture & Dataflow
+## 3. Technical Quality and Implementation (7 Marks)
+
+### Technology Stack
+- **Frontend**: Custom 3-Pane Apple Mail / Superhuman layout built with **Tailwind CSS**, **Alpine.js**, and 100% vector **Lucide SVG icons** (zero emojis, clean typography using `Inter`).
+- **Backend**: **FastAPI** (Python 3.12) running asynchronously with Uvicorn.
+- **Protocols**: **FastMCP** (Model Context Protocol) and Google API Client.
+- **Classical ML**: **Scikit-Learn** (`TfidfVectorizer`, `LogisticRegression`, `joblib`).
+- **Dense Retrieval (RAG)**: **Sentence-Transformers** (`all-MiniLM-L6-v2`) and **FAISS** (Facebook AI Similarity Search).
+- **Foundation Model**: **Qwen 2.5 Coder 7B** running locally via Ollama.
+- **Authentication**: Google OAuth 2.0 with automated client-side WSGI redirect (eliminates the blank callback tab).
+
+---
+
+## 4. Clarity and Organisation: Datasets and Pipeline (5 Marks)
+
+### What Datasets Did We Create & Use?
+
+The project uses **4 purpose-built datasets** stored in [`data/`](./data):
+
+```
+data/
+├── training_emails.json       # 65 labeled emails used to train the ML models
+├── test_emails.json           # 20 blind benchmark emails to test accuracy
+├── sent_style_examples.json   # 15 real sent email examples for style matching
+├── my_context.md              # Personal, academic, and calendar ground truth
+└── drafts_log.json            # Audit history of drafts generated and saved
+```
+
+#### 1. Training Dataset (`data/training_emails.json` — 65 Samples)
+- **What it is**: 65 realistic emails across 5 categories with labeled intent and urgency.
+- **Intent Breakdown**:
+  - `Academic/Faculty` (14 samples): CIE exam notifications, lab test rubrics, fee due notices, attendance warnings.
+  - `Action Required` (14 samples): GitHub PR review feedback, CI/CD workflow run failures, server alarms.
+  - `Internship/Recruiter` (13 samples): Interview invitations, hackathon outreach, internship offers.
+  - `Promotional/Spam` (13 samples): Retail discounts, marketing digests, newsletters.
+  - `Event/Club` (11 samples): Technical club workshops, campus hackathons, symposium invites.
+- **Urgency Breakdown**: `High` (22), `Medium` (20), `Low` (23).
+
+#### 2. Test Dataset (`data/test_emails.json` — 20 Samples)
+- **What it is**: An independent test set (4 samples per class, balanced 20% test split) that the model has never seen during training, used by `evaluate.py` to calculate accuracy and F1 scores.
+
+#### 3. Sent Style Dataset (`data/sent_style_examples.json` — 15 Samples)
+- **What it is**: 15 authentic email responses representing Arya's personal tone across different contexts (formal academic to professors, enthusiastic and prompt to recruiters, technical to software collaborators).
+- **How it is used**: Embedded into a FAISS vector database to provide few-shot examples to the LLM.
+
+#### 4. Personal Context Knowledge Base (`data/my_context.md`)
+- **What it is**: A structured markdown file containing:
+  - Identity: H R Arya Ayyappa Halambi, USN `1BF25CS095`, CSE Department, BMSCE.
+  - Metrics: Current GPA 9.1 / 10.0; Faculty Mentor: Dr. B. Ramesh.
+  - Availability constraints: Mon–Fri classes & labs until 3:30 PM; calls/vivas available between 4:00 PM – 7:00 PM IST.
+  - Signature rules: Formal academic sign-off with USN for college faculty; clean professional sign-off for recruiters.
+
+---
+
+## 5. Design and Flow: End-to-End Pipeline (6 Marks)
+
+### How Everything Works (In Simple Words)
 
 ```mermaid
 flowchart TD
-    subgraph Browser["Executive Client (Tailwind CSS + Alpine.js)"]
-        Sidebar["Pane 1: Navigation & Categories (220px)"]
-        Stream["Pane 2: Message Stream (320px)"]
-        Canvas["Pane 3: Executive Canvas (900px+)"]
-        CanvasToolbar["Executive Toolbar & Mode Switcher (HTML | Prose)"]
-        CanvasBrief["Intelligence Briefing (In Simple Words & What They Expect)"]
-        CanvasViewer["Sandboxed HTML / Clean Prose Email Viewer"]
-        CanvasStudio["AI Reply Studio (4 Dynamic Strategic Personas)"]
-    end
-
-    subgraph Server["FastAPI Gateway & Security Layer (server.py)"]
-        RateLimit["Sliding-Window Rate Limiter (120 req/min)"]
-        SecHeaders["Hardened Security Headers (CSP, nosniff, SAMEORIGIN)"]
-        Sanitizer["Server-Side HTML Sanitizer (Strips malicious tags/scripts)"]
-        Cache["In-Memory LRU Cache (Sub-millisecond retrieval)"]
-    end
-
-    subgraph ML["Hybrid Machine Learning Pipeline (ml_pipeline.py)"]
-        TFIDF["Unigram + Bigram TF-IDF Feature Extractor"]
-        IntentCLF["Calibrated Logistic Regression (5 Intent Classes)"]
-        UrgencyCLF["Urgency Classifier (High / Medium / Low)"]
-        DenseRAG["Sentence-Transformers (all-MiniLM-L6-v2)"]
-        FAISS["FAISS Index (Cosine Similarity Vector Search)"]
-    end
-
-    subgraph LocalLLM["Foundation Model Engine (llm_engine.py)"]
-        Safety["Ironclad Model Safety Guard (Asserts Safe Target)"]
-        SubTopicDetect["15+ Sub-Topic & Tone Classifier"]
-        DynamicChips["4-Persona Dynamic Strategy Formulator"]
-        SinglePass["Unified Single-Pass Inference (~14-18s)"]
-        Ollama["Local Ollama Service (qwen2.5-coder:7b)"]
-        DynamicFallback["Context-Anchored Entity Fallback (Zero Downtime)"]
-    end
-
-    subgraph Google["Google Workspace & Protocol Layer"]
-        FastMCP["FastMCP Tool Protocol (gmail_mcp.py)"]
-        OAuth["Google OAuth 2.0 with Auto-Redirect Handler"]
-        GmailAPI["Gmail REST API v1 (users.drafts.create)"]
-    end
-
-    Browser <--> Server
-    Server --> RateLimit --> SecHeaders --> Sanitizer --> Cache
-    Cache --> ML
-    ML --> TFIDF --> IntentCLF & UrgencyCLF
-    ML --> DenseRAG --> FAISS
-    Cache --> LocalLLM
-    LocalLLM --> Safety --> SubTopicDetect --> DynamicChips --> SinglePass <--> Ollama
-    SinglePass -.->|Timeout / Offline| DynamicFallback
-    Server <--> FastMCP <--> OAuth <--> GmailAPI
+    A["Incoming Email (Gmail OAuth / Dataset)"] --> B["Step 1: Text Feature Extraction (Subject + Sender + Body)"]
+    B --> C["Step 2: TF-IDF Vectorizer (Unigram + Bigram, 5000 terms)"]
+    C --> D["Step 3: Calibrated Logistic Regression Classifier"]
+    D --> E["Intent (5 Classes) & Urgency (3 Classes) in 8.4ms"]
+    
+    B --> F["Step 4: Sub-Topic & Tone Detector (15 Sub-Topics)"]
+    F --> G["Matches Domain Authority & Emotional Tone"]
+    
+    B --> H["Step 5: Dense Vector RAG Search (MiniLM + FAISS)"]
+    H --> I["Finds Top-2 Style Examples & Student Profile Facts"]
+    
+    E & G & I --> J["Step 6: Local Qwen 2.5 Coder 7B (Ollama JSON Mode)"]
+    J --> K["Extracts: In Simple Words, Expectations, Checklist Items, Drafts"]
+    
+    L["User Custom Prompt / Quick Starter Preset"] --> M["Step 7: Grammarly Live Intent Transformer"]
+    M --> N["Polishes prompt into courteous first-person business English"]
+    
+    K & N --> O["Step 8: Triple-Draft Synthesizer"]
+    O --> P1["Suggested Draft (Autonomous AI Persona)"]
+    O --> P2["Desired Draft (User Prompt Polished)"]
+    O --> P3["Hybrid Draft (Context Facts + User Prompt Merged)"]
+    
+    P1 & P2 & P3 --> Q["Step 9: Anti-Hallucination Guardrail (_is_invalid_draft)"]
+    Q --> R{"Valid First-Person Draft?"}
+    R -- Yes --> S["Enforce Salutation & Verified Signature"]
+    R -- No / Summary Leak --> T["Context-Anchored Heuristic Fallback Engine"]
+    
+    S & T --> U["3-Pane Superhuman Web UI (localhost:8000)"]
+    U --> V["Step 10: Save to Gmail Drafts Folder (Zero Auto-Send)"]
 ```
 
----
-
-## 5. Mathematical & Algorithmic Formulations
-
-### 1. TF-IDF Feature Vectorization
-Given a vocabulary $V$ and document collection $D$, the term frequency–inverse document frequency weight of token $t$ in email $d$ is formulated as:
-$$\text{TF-IDF}(t, d, D) = \text{TF}(t, d) \times \left( \log\frac{1 + |D|}{1 + |\{d' \in D : t \in d'\}|} + 1 \right)$$
-Where unigrams and bigrams $(n \in \{1, 2\})$ capture both atomic terms (`fee`, `viva`, `pull`) and compound phrases (`review 1`, `payment due`, `fee dues`). Sublinear TF scaling ($\text{TF}(t, d) = 1 + \log(\text{count})$) prevents long promotional bodies from skewing vector norms.
-
-### 2. Multi-Class Calibrated Logistic Regression
-For $C = 5$ mutually exclusive macro-intents, the model optimizes a cross-entropy loss function with $L_2$ regularization:
-$$\mathcal{L}(\mathbf{W}) = -\frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C y_{ic} \log P(y_i = c \mid \mathbf{x}_i) + \frac{\lambda}{2} \|\mathbf{W}\|_2^2$$
-Where class probabilities are computed via the Softmax activation:
-$$P(y = c \mid \mathbf{x}) = \frac{\exp(\mathbf{w}_c^T \mathbf{x} + b_c)}{\sum_{j=1}^C \exp(\mathbf{w}_j^T \mathbf{x} + b_j)}$$
-Calibrated Platt scaling yields true posterior probabilities, surfaced directly in the UI as the **Confidence Percentage** (e.g. `95% Confidence`).
-
-### 3. Dense Vector RAG & Cosine Similarity
-To ground the foundation model in the author's personal voice, department styling, and USN details, few-shot style examples are embedded into 384-dimensional dense vectors $\mathbf{u} \in \mathbb{R}^{384}$ using `all-MiniLM-L6-v2`:
-$$\mathbf{u} = \text{MeanPooling}(\text{Transformer}(\text{text}))$$
-A **Facebook AI Similarity Search (FAISS)** FlatIP index executes nearest-neighbor retrieval via Normalized Cosine Similarity:
-$$\text{sim}(\mathbf{q}, \mathbf{d}_i) = \frac{\mathbf{q} \cdot \mathbf{d}_i}{\|\mathbf{q}\|_2 \|\mathbf{d}_i\|_2}$$
-The top-$k$ $(k=2)$ style matches are injected into the LLM context window as dynamic few-shot stylistic anchors.
-
-### 4. Dynamic Sub-Topic Heuristic Mapping
-Let $E = \{D, V, Q, I\}$ denote extracted entities from document $d$ representing Dates $D$, Venues $V$, Questions $Q$, and Imperatives $I$. The sub-topic $\tau$ is mapped through domain predicates:
-$$\tau = f_{\text{domain}}(\text{Subject}, \text{Sender}, \text{Body}, \text{Intent})$$
-The strategy formulation $\mathcal{S} = \{s_{\text{confirm}}, s_{\text{inquire}}, s_{\text{reschedule}}, s_{\text{decline}}\}$ is generated as a function of $(\tau, E)$, guaranteeing complete contextual alignment.
+### Step-by-Step Walkthrough
+1. **Inbox Sync**: The app connects to Gmail using OAuth 2.0 or loads the local Viva Lab dataset.
+2. **Instant ML Triage (<10ms)**: TF-IDF converts the text into numerical term frequencies. Logistic Regression outputs the predicted category and urgency probability.
+3. **Sub-Topic & Tone Mapping**: A rule-and-keyword detector maps the email into one of **15 specific sub-topics** (e.g., *Skill Lab Review*, *Fee Due*, *GitHub PR*, *Interview Invitation*, *Newsletter*).
+4. **Style Retrieval (RAG)**: The email is converted into a 384-dimensional vector by `all-MiniLM-L6-v2`. FAISS searches for the top-2 most relevant sent emails written by Arya.
+5. **Single-Pass LLM Reasoning**: The local LLM (`qwen2.5-coder:7b`) receives a unified prompt containing the email, the RAG examples, and the student context. It outputs a strictly valid JSON response containing the plain-English summary, sender expectation, checklist, and drafts.
+6. **Live User Guidance (Prompt Studio)**: If the user types a prompt or clicks a Quick Starter, the Grammarly transformer strips robotic meta-phrases and crafts a natural, polite email request.
+7. **Anti-Hallucination Guardrail**: The draft is verified against customer-support inversion phrases and third-person summaries. If any flaw is detected, a clean heuristic draft replaces it.
+8. **Save to Gmail Drafts**: Clicking **"Save to Gmail Drafts"** saves the threaded reply directly into the user's real Gmail account.
 
 ---
 
-## 6. AIML Evaluation, Benchmarks & Metrics
+## 6. Presentation Script & Explaining in Simple Words (6 Marks)
 
-The machine learning subsystem was rigorously benchmarked on held-out test datasets comprising academic notices, developer logs, recruiter offers, event alerts, and newsletters:
+Use this script during your presentation to explain the project clearly and confidently:
 
-### Comprehensive Classification Performance
-| Evaluation Metric | Measured Score | Lab Benchmark Target | Status |
-| :--- | :---: | :---: | :---: |
-| **Overall Classification Accuracy** | **95.00%** | $\ge 90.0\%$ | ✅ Exceeded |
-| **Macro-Averaged Precision** | **0.9538** | $\ge 0.880$ | ✅ Exceeded |
-| **Macro-Averaged Recall** | **0.9500** | $\ge 0.880$ | ✅ Exceeded |
-| **Macro-Averaged F1-Score** | **0.9492** | $\ge 0.900$ | ✅ Exceeded |
-| **Urgency Classification F1-Score** | **0.8750** | $\ge 0.800$ | ✅ Exceeded |
-| **FAISS Dense Retrieval Similarity** | **0.4357** | $\ge 0.350$ | ✅ Exceeded |
+> *"Good afternoon, professors. Today I am presenting **MailMind AI**, a commercial-grade, privacy-first email copilot designed for engineering students and software developers.*
+>
+> *The core problem we address is **email fatigue and missed deadlines**. Modern students and engineers receive dozens of critical emails daily—from CIE test notices and faculty reviews to GitHub CI build failures and job interviews.*
+>
+> *Existing solutions either send your private email data to third-party cloud AI servers, or use slow LLMs that take several minutes to process an inbox. **MailMind AI solves this with a 3-Tier Hybrid Architecture**:*
+>
+> 1. *First, our **Tier 1 Classical ML Engine** uses TF-IDF vectorization and calibrated Logistic Regression to classify emails in **8.4 milliseconds** with **95% accuracy**. This allows an entire inbox of 25 emails to load in under 1.5 seconds.*
+> 2. *Second, our **Tier 2 RAG Engine** uses FAISS vector search and MiniLM embeddings to retrieve my personal academic context—such as my USN `1BF25CS095`, my college department, and my availability schedule—ensuring the model never hallucinates my background.*
+> 3. *Third, our **Tier 3 Local LLM**, Qwen 2.5 Coder 7B, runs locally on the laptop. In a single pass, it explains the email in plain English, extracts deadlines, provides an interactive task checklist, and crafts three distinct response drafts: **Suggested**, **Desired**, and **Hybrid**.*
+>
+> *Finally, our system implements a **Zero Auto-Send Guarantee**. It integrates with the Gmail API via OAuth 2.0 to save replies safely into the **Gmail Drafts folder**, ensuring complete human-in-the-loop safety.*
+>
+> *Let me demonstrate the live interface..."*
 
-### Detailed Category Breakdown
-| Intent Class | Precision | Recall | F1-Score | Support |
-| :--- | :---: | :---: | :---: | :---: |
-| **Academic/Faculty** | **1.0000** | **0.9500** | **0.9744** | 20 |
-| **Internship/Recruiter** | **0.9474** | **1.0000** | **0.9730** | 18 |
-| **Event/Club** | **0.9412** | **0.9412** | **0.9412** | 17 |
-| **Action Required** | **0.9375** | **0.9375** | **0.9375** | 16 |
-| **Promotional/Spam** | **0.9444** | **0.9444** | **0.9444** | 18 |
+---
 
-### Latency Profile Across Execution Tiers
-| Operation Tier | Execution Latency | Architecture Component |
+## 7. Model Parameters, Training, and Benchmarks (8 Marks)
+
+### Benchmark Results (`evaluation_report.json`)
+
+The ML pipeline was evaluated using `evaluate.py` on the unseen test dataset:
+
+| Metric | Measured Value | Meaning / Interpretation |
 | :--- | :---: | :--- |
-| **Classical ML Classification** | **8.43 ms** | TF-IDF + Calibrated Logistic Regression |
-| **FAISS Dense Style Retrieval** | **3.12 ms** | Sentence-Transformers + FAISS FlatIP |
-| **Fast Inbox Sync (25 Emails)** | **1.62 s** | Parallel Batch Metadata Retrieval |
-| **Qwen 2.5 Coder Unified Pass** | **14.28 s** | Single-pass 7B parameter reasoning |
-| **Cached In-Memory Email View** | **0.025 s** | In-Memory LRU Dictionary Hash |
+| **Intent Classification Accuracy** | **95.0%** (19/20 correct) | Correctly identifies email purpose across 5 diverse categories |
+| **Intent Macro F1-Score** | **0.9492** | High balance across minority and majority classes |
+| **Intent Weighted F1-Score** | **0.9492** | Robust performance accounting for class distribution |
+| **Urgency Accuracy** | **75.0%** | Accurately distinguishes High, Medium, and Low urgency |
+| **Average ML Latency** | **8.43 ms** | Ultra-fast execution (over 100x faster than cloud LLMs) |
+| **P95 Latency** | **29.02 ms** | 95% of all inferences complete in under 30 milliseconds |
+| **RAG Top-1 Cosine Similarity** | **0.4357** | Semantic alignment with authentic historical responses |
+
+### Per-Class Performance Breakdown
+
+| Class | Precision | Recall | F1-Score | Support |
+| :--- | :---: | :---: | :---: | :---: |
+| **Academic/Faculty** | 1.00 | 1.00 | **1.00** | 4 |
+| **Action Required** | 1.00 | 1.00 | **1.00** | 4 |
+| **Event/Club** | 1.00 | 0.75 | **0.86** | 4 |
+| **Internship/Recruiter** | 0.80 | 1.00 | **0.89** | 4 |
+| **Promotional/Spam** | 1.00 | 1.00 | **1.00** | 4 |
+| **Macro Average** | **0.96** | **0.95** | **0.95** | 20 |
+
+### Mathematical Formulations
+
+#### 1. TF-IDF Feature Extraction
+$$\text{TF-IDF}(t, d, D) = \text{TF}(t, d) \times \log\left(\frac{1 + |D|}{1 + \text{DF}(t, D)}\right) + 1$$
+Where:
+- $\text{TF}(t, d) = 1 + \log(\text{count}(t, d))$ (sublinear term frequency scaling to prevent long emails from dominating).
+- Unigram + Bigram range $(1, 2)$ captures critical two-word sequences like *"fee payment"*, *"review schedule"*, and *"action required"*.
+
+#### 2. Calibrated Multi-Class Logistic Regression
+$$P(y = c \mid \mathbf{x}) = \frac{e^{\mathbf{w}_c^T \mathbf{x} + b_c}}{\sum_{j=1}^{K} e^{\mathbf{w}_j^T \mathbf{x} + b_j}}$$
+Where $K=5$ classes, optimized using the L-BFGS solver with L2 weight regularization ($C=1.0$).
 
 ---
 
-## 7. Sub-Topic & Dynamic Persona Engine
+## 8. Viva / Q&A Defense Master Guide (8 Marks)
 
-The engine defines 15+ sub-topics with tailored response strategies:
+### Q1: Why didn't you just use ChatGPT / Claude API for the whole system?
+> **Answer**: Using a cloud LLM for every incoming email has three fatal flaws:
+> 1. **High Latency**: Running an LLM on 25 emails takes 3 to 5 minutes, freezing the inbox. Our Classical ML classifies all 25 emails in **under 1.5 seconds ($8.43\text{ ms}$ each)**.
+> 2. **Privacy Violation**: Sending academic circulars, grades, or proprietary Git commit logs to third-party servers violates student and institutional privacy. Our model runs 100% locally.
+> 3. **API Cost**: Cloud APIs charge per token. MailMind AI runs locally on device with zero recurring subscription fees.
 
-```
-├── Academic Communication
-│   ├── academic_fee         --> [Confirm UTR, Request Extension, Clarify Challan, Prior Payment Proof]
-│   ├── academic_review      --> [Confirm Deliverables, Clarify Rubrics, Request Afternoon Slot, Deferral Note]
-│   ├── academic_exam        --> [Acknowledge Schedule, Clarify Syllabus, Report Exam Clash, Medical Absence]
-│   ├── academic_classroom   --> [Acknowledge & Received, Ask Concept Query, Request Grace, Office Hours Doubt]
-│   └── academic_admin       --> [Acknowledge Circular, Request Clarification, Appointment Slot, Formal Representation]
-├── Developer & Engineering
-│   ├── dev_pull_request     --> [Changes Pushed, Request Examples, Track Separate Issue, Design Rationale]
-│   ├── dev_alert            --> [Diagnosed & Mitigated, Request Stack Telemetry, Active Triage, False Positive]
-│   └── dev_collaboration    --> [Proceed with RFC, Ask Trade-offs, Suggest 15-Min Sync, Alternative Design]
-├── Career & Recruiting
-│   ├── career_interview     --> [Accept Proposed Slot, Inquire Tech Format, Propose Alternate Window, Decline Slot]
-│   ├── career_offer         --> [Accept Offer, Inquire Onboarding, Request Review Window, Decline Offer]
-│   └── career_inquiry       --> [Express Strong Interest, Ask Role Scope, Connect Next Cycle, Not Looking]
-└── Administrative & Commercial
-    ├── admin_invoice        --> [Confirm Payment, Request Itemized Breakdown, Dispute Duplicate, Cancel Plan]
-    ├── admin_security       --> [Confirm Authorized Login, Request IP Log, Revoke Session, Archive Alert]
-    └── newsletter           --> [Acknowledge & Archive, Update Topic Preferences, Save to Reading List, Unsubscribe]
-```
+### Q2: How does the model know who you are and your schedule?
+> **Answer**: Through **Retrieval-Augmented Generation (RAG)**. We store my student profile facts (`data/my_context.md`) and 15 authentic past sent emails (`data/sent_style_examples.json`). We embed them using `sentence-transformers/all-MiniLM-L6-v2` into a **FAISS vector database**. When an email is selected, FAISS retrieves the most relevant background facts and few-shot examples to inject into the local LLM prompt.
+
+### Q3: What is the Triple-Draft feature and why is it useful?
+> **Answer**: Different situations require different perspectives:
+> 1. **Suggested Draft**: Fully autonomous response based on the active persona (*Confirm*, *Clarify*, *Reschedule*, *Decline*).
+> 2. **Desired Draft**: A strict, polished translation of what the user instructed in the prompt bar.
+> 3. **Hybrid Draft**: Combines the factual anchors of the incoming email (deadlines, review venues, PR branches) with the user's specific request.
+
+### Q4: What prevents the AI from accidentally sending an incorrect email?
+> **Answer**: We enforce a **Zero Auto-Send Guarantee**. Our Google OAuth 2.0 configuration only requests the `gmail.compose` scope and calls `users.drafts.create`. It has no technical capability to call `messages.send`. Every reply is saved strictly as a draft in Gmail for the user to review and manually click send.
+
+### Q5: How do you prevent hallucinations like the LLM pretending to be the sender company?
+> **Answer**: We built an anti-hallucination filter function: `_is_invalid_draft()`. It checks every draft against a blacklist of third-person summary phrases (*"the sender is communicating"*) and customer-service inversion phrases (*"if you need assistance, contact our support"*). If any hallucination is detected, the system automatically falls back to our context-anchored heuristic generator.
 
 ---
 
-## 8. Real-World Case Studies & Validation
+## 9. Slide-by-Slide PPT Outline (Ready to Copy into Slides)
 
-### Case Study 1: Academic Fee Payment Due Notice
-- **Sender**: `Campus BMS College of Engineering <principal@bmsce.ac.in>`
-- **Subject**: `Final Reminder: Fee Payment Due-Reg`
-- **Classified Topic & Tone**: `Fee Notice & Dues` • `Urgent / Strict`
-- **Dynamic Personas Formulated**:
-  1. `Confirm Payment Completed` (Provide UTR / receipt for CIE clearance)
-  2. `Clarify Challan Submission` (Ask if physical submission is required at accounts)
-  3. `Request 3-Day Extension` (Politely request grace period for bank transfer)
-  4. `Prior Payment Proof` (Attach existing receipt showing dues cleared)
-- **Selected Strategy (`Request 3-Day Extension`) Output**:
-  > *"Dear Principal,*  
-  > *I hope this message finds you well. I am writing to request a 3-day extension for the fee payment due on 28/10/2026. Unfortunately, I am facing difficulties with my bank transfer and need a bit more time to resolve it. I assure you that I will make the payment as soon as possible.*  
-  > *Best regards,*  
-  > *Arya Ayyappa Halambi | USN: 1BF25CS095*  
-  > *Department of Computer Science and Engineering, BMSCE"*
+Here is the exact 10-slide structure for your presentation:
 
-### Case Study 2: Skill Labs Review 1 Viva Schedule
-- **Sender**: `Suharshitha G <suharshitha.cs@bmsce.ac.in>`
-- **Subject**: `Fwd: Skill Labs - Review 1 Assessments`
-- **Classified Topic & Tone**: `Skill Lab & Project Review` • `Formal / Administrative`
-- **Selected Strategy (`Confirm Deliverables Ready`) Output**:
-  > *"Dear Suharshitha G,*  
-  > *Thank you for the detailed guidelines regarding Skill Labs - Review 1 Assessments scheduled for Friday, 3rd Nov 2026 at Lab 3.*  
-  > *Our team is preparing the required deliverables, including the updated architecture diagrams, functional prototype, and Git commit logs. We will be present during the scheduled review slot.*  
-  > *Best regards,*  
-  > *Arya Ayyappa Halambi | USN: 1BF25CS095*  
-  > *Department of Computer Science and Engineering, BMSCE"*
+- **Slide 1: Title Slide**
+  - Project Title: *MailMind AI — Autonomous Email Triage & Contextual Copilot Engine*
+  - Student Name: H R Arya Ayyappa Halambi (USN: `1BF25CS095`)
+  - Department of Computer Science & Engineering, BMSCE
+  - Guide / Course: AIML Skill Lab (2026)
 
-### Case Study 3: Open-Source Code Review on GitHub
-- **Sender**: `sourcery-ai[bot] <notifications@github.com>`
-- **Subject**: `Re: [arya-ayyappa-halambi/Hamara-FireBase] docs: add modular architecture guides (PR #8)`
-- **Classified Topic & Tone**: `GitHub Pull Request & Review` • `Technical / Instructional`
-- **Selected Strategy (`Changes Committed & Pushed`) Output**:
-  > *"Dear Sourcery AI,*  
-  > *Thank you for bringing this to my attention. I have added the requested documentation on SQLite WAL storage, memory footprint, and CDC streams to the architecture guide. The changes have been committed and pushed to the branch.*  
-  > *Best regards,*  
-  > *Arya Ayyappa Halambi"*
+- **Slide 2: Problem Statement & Motivation**
+  - Email cognitive overload for developers and students.
+  - Flaws of existing tools: High latency, cloud privacy risks, and generic hallucinated drafts.
 
----
+- **Slide 3: Proposed Solution — 3-Tier Hybrid Architecture**
+  - Tier 1: Sub-10ms Classical ML Classification (TF-IDF + Logistic Regression).
+  - Tier 2: Dense Semantic RAG (Sentence-Transformers + FAISS).
+  - Tier 3: Local Foundation Model Reasoning (Qwen 2.5 Coder 7B via Ollama).
 
-## 9. Commercial-Grade Security & Safety Protocols
+- **Slide 4: Dataset Engineering & Curation**
+  - `training_emails.json` (65 samples across 5 intents and 3 urgencies).
+  - `test_emails.json` (20 blind benchmark test samples).
+  - `sent_style_examples.json` (15 authentic few-shot response styles).
+  - `my_context.md` (Personal student ground truth and calendar availability).
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                   COMMERCIAL-GRADE SAFETY MATRIX                       │
-├──────────────────────────┬─────────────────────────────────────────────┤
-│ Zero Auto-Send Guarantee │ Strictly users().drafts().create.           │
-│                          │ gmail.send is NEVER exposed or invoked.     │
-├──────────────────────────┼─────────────────────────────────────────────┤
-│ Model Isolation Guard    │ Hardcoded assertion blocking vulnpilot-7b.  │
-│                          │ Only qwen2.5-coder:7b allowed.              │
-├──────────────────────────┼─────────────────────────────────────────────┤
-│ Student PII Preservation │ USN (1BF25CS095) is applied ONLY to faculty │
-│                          │ emails; never leaked to recruiters or bots. │
-├──────────────────────────┼─────────────────────────────────────────────┤
-│ Sliding-Window Limiter   │ 120 req/min per IP with RFC 6585 HTTP 429.  │
-├──────────────────────────┼─────────────────────────────────────────────┤
-│ Server HTML Sanitization │ Eliminates <script>, <object>, and inline   │
-│                          │ JS handlers before iframe rendering.        │
-├──────────────────────────┼─────────────────────────────────────────────┤
-│ Zero Secret Leakage      │ No API keys or client secrets in frontend.  │
-│                          │ Dynamic token hydration via backend API.    │
-└──────────────────────────┴─────────────────────────────────────────────┘
-```
+- **Slide 5: System Architecture & Data Flow**
+  - *Insert the Mermaid Pipeline Diagram from Section 5.*
+
+- **Slide 6: Machine Learning Evaluation & Results**
+  - **95.0% Intent Accuracy**, **0.9492 F1-Score**, **8.43 ms Average Latency**.
+  - Show the confusion metrics and latency comparison graph.
+
+- **Slide 7: Key Features & Innovations**
+  - 15 Sub-Topic Semantic Classification & 5-Tone Stance Detection.
+  - 4 Dynamic Strategic Personas (Confirm, Clarify, Reschedule, Decline).
+  - Prompt Studio with Triple-Draft Generation (`Suggested`, `Desired`, `Hybrid`).
+  - Grammarly Live Intent Transformer.
+
+- **Slide 8: Security, Privacy & Zero Auto-Send**
+  - 100% Local Inference (No data sent to external servers).
+  - Anti-Hallucination Guardrails (`_is_invalid_draft`).
+  - Strict Gmail Drafts creation (Zero Auto-Send Guarantee).
+
+- **Slide 9: Live Demo Walkthrough**
+  - Screenshot of the 3-Pane Apple Mail UI.
+  - Demo flow: Instant classification $\rightarrow$ Executive summary $\rightarrow$ Checklist $\rightarrow$ Triple Draft $\rightarrow$ Save to Gmail.
+
+- **Slide 10: Conclusion & Future Scope**
+  - Summary: Commercial-grade, privacy-first, sub-10ms email management.
+  - Future Enhancements: Multi-account inbox aggregation, calendar event auto-booking, speech-to-intent dictation.
 
 ---
 
-## 10. Superhuman Ergonomics & Keyboard Shortcuts
+## 10. Project Report Outline (Ready for Documentation)
 
-Designed for instantaneous, mouse-free productivity:
+Use these section headers and content directly in your final project report:
 
-| Keybinding | Functionality | Scope |
-| :---: | :--- | :--- |
-| <kbd>J</kbd> / <kbd>↓</kbd> | Navigate to the **Next Email** in stream | Global Inbox |
-| <kbd>K</kbd> / <kbd>↑</kbd> | Navigate to the **Previous Email** in stream | Global Inbox |
-| <kbd>S</kbd> | Toggle **Star / Favorite** on selected message | Active Message |
-| <kbd>F</kbd> | Open **Fullscreen Focus Mode (⛶)** modal | Active Message |
-| <kbd>D</kbd> | **Save Response Draft** directly to Gmail Drafts folder | Active Draft |
-| <kbd>C</kbd> | **Copy Response Draft** to system clipboard | Active Draft |
-| <kbd>/</kbd> | Instant focus on **Search / Filter Input** | Navigation |
-| <kbd>?</kbd> | Display interactive **Keyboard Shortcuts Sheet** | Modal |
-| <kbd>Esc</kbd> | Dismiss active modal (Focus, Sandbox, Shortcuts, Benchmarks) | Overlays |
+1. **Chapter 1: Introduction & Abstract**
+   - 1.1 Executive Summary
+   - 1.2 Problem Formulation
+   - 1.3 Scope of the Project
+2. **Chapter 2: Literature Survey & Background**
+   - 2.1 Rule-Based Filtering vs. Machine Learning
+   - 2.2 Dense Retrieval & Retrieval-Augmented Generation (RAG)
+   - 2.3 Local Foundation Models vs. Cloud APIs
+3. **Chapter 3: System Requirements & Architecture**
+   - 3.1 Hardware and Software Requirements
+   - 3.2 3-Tier Architectural Design
+   - 3.3 FastMCP & Gmail API Integration
+4. **Chapter 4: Dataset Engineering**
+   - 4.1 Data Collection & Labeling Methodology
+   - 4.2 Class Distribution & Preprocessing
+   - 4.3 Few-Shot Style & Context Knowledge Base
+5. **Chapter 5: Implementation Details**
+   - 5.1 TF-IDF & Logistic Regression Classifiers
+   - 5.2 FAISS Vector Store Construction
+   - 5.3 Single-Pass Ollama Foundation Model Engine
+   - 5.4 Grammarly Intent Transformation Algorithm
+   - 5.5 Anti-Hallucination Validation Logic
+6. **Chapter 6: Experimental Results & Analysis**
+   - 6.1 Evaluation Metrics (Precision, Recall, F1, Latency)
+   - 6.2 Confusion Matrix & Class-Wise Performance
+   - 6.3 Real-World Case Studies (Academic, PR Alerts, Recruiter)
+7. **Chapter 7: User Interface & Human-Computer Interaction**
+   - 7.1 Spacious 3-Pane Apple Mail Canvas
+   - 7.2 Zero-Emoji SVG Iconography & Inter Typography
+   - 7.3 Keyboard Shortcuts & Ergonomics
+8. **Chapter 8: Conclusion & Future Work**
+   - 8.1 Summary of Contributions
+   - 8.2 Future Enhancements
 
 ---
 
-## 11. Installation, Setup & Reproduction Guide
+## 11. Quick Installation & How to Run
 
-### System Prerequisites
-- **Operating System**: macOS (Apple Silicon recommended), Linux, or Windows (WSL2).
-- **Python Runtime**: Python 3.10, 3.11, or 3.12.
-- **Ollama Engine**: Running locally on `http://localhost:11434` with `qwen2.5-coder:7b`.
-- **Google Cloud Console**: An active project with the **Gmail API** enabled and an **OAuth 2.0 Desktop Client ID**.
+### Prerequisites
+- macOS or Linux
+- Python 3.10+
+- Ollama installed with `qwen2.5-coder:7b`:
+  ```bash
+  ollama run qwen2.5-coder:7b
+  ```
 
-### Step 1: Clone Repository
+### Step 1: Clone the Repository
 ```bash
 git clone https://github.com/arya-ayyappa-halambi/Smart-Gmail-Replier.git
 cd Smart-Gmail-Replier
 ```
 
-### Step 2: Virtual Environment Configuration
+### Step 2: Set Up Virtual Environment & Dependencies
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 3: Google OAuth Setup
-1. Download your client secrets JSON from the Google Cloud Console.
-2. Save it in the project directory as `credentials.json` (format demonstrated in `credentials.example.json`):
+### Step 3: Run Evaluation Benchmarks
 ```bash
-cp credentials.example.json credentials.json
+python evaluate.py
 ```
+*(Prints benchmark metrics and saves results to `evaluation_report.json`)*.
 
-### Step 4: Verify Local Foundation Model
-Ensure Ollama is running and has the target model installed:
-```bash
-ollama serve
-ollama pull qwen2.5-coder:7b
-```
-
-### Step 5: Launch the Server
+### Step 4: Start the Application Server
 ```bash
 uvicorn server:app --host 0.0.0.0 --port 8000 --reload
 ```
-Navigate your browser to:
-👉 **`http://localhost:8000`**
 
-Click **"Continue with Google"** to authenticate. The zero-click redirect will automatically bring you directly inside your active inbox!
-
-> **Offline Lab / Viva Mode**:  
-> Click **"Viva Lab Dataset"** in the top navigation bar to evaluate realistic AIML test emails (BMSCE Faculty, AWS Cloud Alert, Recruiter Inquiries) completely offline without internet or Google credentials!
+### Step 5: Open in Browser
+Open **`http://localhost:8000`** in your browser.
 
 ---
 
-## 12. Presentation & Viva Talking Points
-
-For the AIML Skill Lab viva and final presentation, focus on these five core technical achievements:
-
-1. **Dual-Speed Hybrid Architecture**:
-   - Explain why raw LLMs are insufficient for email sync (25 emails × 25s = 625s timeout).
-   - Detail how TF-IDF + Calibrated Logistic Regression provides sub-10ms list triage, while Qwen 2.5 Coder provides on-demand reasoning only for the selected email.
-2. **Elimination of Template Boilerplates**:
-   - Contrast static classification buckets with MailMind's **15+ sub-topic semantic classifier**.
-   - Show how a fee email generates fee-specific personas (UTR, extension, challan) rather than generic slides or GPU logs.
-3. **Unified Single-Pass Inference**:
-   - Explain how combining comprehension (`In Simple Words`, expectations, action items) and drafting into **one atomic pass** cuts latency by 50% and eliminates local LLM queue contention.
-4. **Dense Vector Few-Shot RAG**:
-   - Detail how FAISS and Sentence-Transformers (`all-MiniLM-L6-v2`) retrieve stylistic examples to keep drafts authentic to the student's voice.
-5. **Human-in-the-Loop Commercial Safety**:
-   - Emphasize the **Zero Auto-Send Guarantee**: all actions strictly create reversible drafts via FastMCP and `users().drafts().create`.
-   - Point out the selective attribution rule: USN `1BF25CS095` appears strictly on academic faculty emails and is never exposed to external recruiters.
-
----
-
-## 📄 License
-This project is open-source under the [MIT License](LICENSE).  
-Developed for the **AIML Skill Lab** at **B.M.S. College of Engineering (BMSCE)** by **H R Arya Ayyappa Halambi** (`1BF25CS095`).
+*Author: H R Arya Ayyappa Halambi (USN: 1BF25CS095) | BMSCE AIML Skill Lab Project (2026).*
